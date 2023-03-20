@@ -1433,6 +1433,7 @@ dependencies = [
  "leptos_meta",
  "leptos_router",
  "log",
+ "rand",
  "simple_logger",
  "wasm-bindgen",
 ]
