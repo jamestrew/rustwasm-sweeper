@@ -76,6 +76,13 @@ impl Minesweeper {
         }
     }
 
+    pub fn flag_cell(&mut self, pos: Pos) {
+        match self.board[pos.row][pos.col] {
+            Cell::Closed => self.board[pos.row][pos.col] = Cell::Flagged,
+            _ => return,
+        }
+    }
+
     pub fn lclick_cell(&mut self, pos: Pos) {
         match self.board[pos.row][pos.col] {
             Cell::Mine => self.state = GameState::Lose,
@@ -179,6 +186,14 @@ mod tests {
             .filter(|&cell| *cell == Cell::Mine)
             .count();
         assert_eq!(mine_count, game.mine_count);
+    }
+
+    #[test]
+    fn flagging_cell() {
+        let mut game = Minesweeper::new(4, 3, 3);
+        game.flag_cell(Pos { row: 0, col: 0 });
+        assert_eq!(game.state, GameState::Playing);
+        assert_eq!(game.board[0][0], Cell::Flagged);
     }
 
     #[test]
