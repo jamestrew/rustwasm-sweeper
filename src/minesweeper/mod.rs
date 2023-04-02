@@ -1,24 +1,16 @@
+mod board;
+mod cell;
+
 use rand::Rng;
 
-#[derive(Debug, PartialEq)]
-pub enum Cell {
-    Open(usize),
-    Closed,
-    Flagged,
-    Mine,
-}
+pub use board::{Board, Pos};
+pub use cell::Cell;
 
 #[derive(Debug, PartialEq)]
 pub enum GameState {
     Playing,
     Win,
     Lose,
-}
-
-#[derive(Debug, Eq, PartialEq, Hash)]
-pub struct Pos {
-    pub row: usize,
-    pub col: usize,
 }
 
 pub struct Minesweeper {
