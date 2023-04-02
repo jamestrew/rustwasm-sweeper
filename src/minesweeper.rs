@@ -46,13 +46,16 @@ impl Minesweeper {
 
     pub fn from_vec(vec: Vec<Vec<usize>>) -> Self {
         let mut game = Self::new(vec.len(), vec[0].len(), 0);
+        let mut mine_count = 0;
         for i in 0..game.height {
             for j in 0..game.width {
                 if vec[i][j] != 0 {
                     game.board[i][j] = Cell::Mine;
+                    mine_count += 1;
                 }
             }
         }
+        game.mine_count = mine_count;
         game
     }
 
@@ -173,6 +176,10 @@ mod tests {
         ];
         let game = Minesweeper::from_vec(board);
         assert_board(game.board, expect);
+        assert_eq!(game.height, 2);
+        assert_eq!(game.width, 4);
+        assert_eq!(game.mine_count, 4);
+        assert_eq!(game.state, GameState::Playing);
     }
 
     #[test]
