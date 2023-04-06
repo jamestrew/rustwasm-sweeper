@@ -1,10 +1,11 @@
 use super::cell::Cell;
 use std::{error::Error, fmt::Display};
 
+
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Pos {
-    pub row: usize,
-    pub col: usize,
+    pub row: u8,
+    pub col: u8,
 }
 
 #[derive(Debug, PartialEq)]
@@ -24,28 +25,37 @@ impl Display for BoardError {
     }
 }
 
-pub struct Board(Vec<Vec<Cell>>);
+pub struct Board {
+    b: Vec<Vec<Cell>>,
+    pub height: u8,
+    pub width: u8,
+}
 
 impl Board {
-    pub fn new(height: usize, width: usize) -> Self {
+    pub fn new(height: u8, width: u8) -> Self {
         let board = (0..height)
             .map(|_| (0..width).map(|_| Cell::Closed).collect())
             .collect();
-        Board(board)
+
+        Board {
+            b: board,
+            height,
+            width,
+        }
     }
 
     pub fn get(&self, pos: Pos) -> Option<&Cell> {
-        match self.0.get(pos.row) {
-            Some(row) => row.get(pos.col),
+        match self.b.get(pos.row as usize) {
+            Some(row) => row.get(pos.col as usize),
             None => None,
         }
     }
 
     pub fn set(&mut self, pos: Pos, cell: Cell) -> Result<(), BoardError> {
         let err = BoardError::SetCellError { pos, cell };
-        match self.0.get_mut(pos.row) {
+        match self.b.get_mut(pos.row as usize) {
             Some(row) => {
-                let c = row.get_mut(pos.col).ok_or(err)?;
+                let c = row.get_mut(pos.col as usize).ok_or(err)?;
                 *c = cell;
             }
             None => return Err(err),
@@ -55,8 +65,8 @@ impl Board {
     }
 
     pub fn iter_neighbors(&self, pos: Pos) -> impl Iterator<Item = Pos> {
-        let height = self.0.len();
-        let width = self.0[0].len();
+        let height = self.height;
+        let width = self.width;
 
         let row_start = if pos.row > 0 { pos.row - 1 } else { pos.row };
         let row_end = if pos.row < height - 1 {
@@ -91,11 +101,11 @@ mod tests {
     use std::collections::HashSet;
 
     fn assert_board(actual: Board, expect: Vec<Vec<Cell>>) {
-        assert_eq!(expect.len(), actual.0.len());
+        assert_eq!(expect.len(), actual.height as usize);
         for i in 0..expect.len() {
-            assert_eq!(expect[i].len(), actual.0[i].len());
+            assert_eq!(expect[i].len(), actual.width as usize);
             for j in 0..expect[i].len() {
-                assert_eq!(expect[i][j], actual.0[i][j]);
+                assert_eq!(expect[i][j], actual.b[i][j]);
             }
         }
     }
@@ -115,7 +125,7 @@ mod tests {
     #[test]
     fn board_get_inbounds() {
         let mut b = Board::new(4, 3);
-        b.0[0][1] = Cell::Mine;
+        b.b[0][1] = Cell::Mine;
         assert_eq!(b.get(Pos { row: 0, col: 1 }).unwrap(), &Cell::Mine);
     }
 
