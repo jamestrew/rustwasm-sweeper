@@ -1,6 +1,5 @@
 use super::cell::Cell;
-use std::{error::Error, fmt::Display};
-
+use std::{error::Error, fmt::Display, slice::Iter};
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Pos {
@@ -33,15 +32,25 @@ pub struct Board {
 
 impl Board {
     pub fn new(height: u8, width: u8) -> Self {
-        let board = (0..height)
+        let b = (0..height)
             .map(|_| (0..width).map(|_| Cell::Closed).collect())
             .collect();
 
-        Board {
-            b: board,
-            height,
-            width,
-        }
+        Self { b, height, width }
+    }
+
+    pub fn from_matrix(matrix: Vec<Vec<i32>>) -> Self {
+        let height = matrix.len() as u8;
+        let width = matrix.get(0).map_or(0, |row| row.len()) as u8;
+        let b = matrix
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|val| if val == 0 { Cell::Closed } else { Cell::Mine })
+                    .collect()
+            })
+            .collect();
+        Self { b, height, width }
     }
 
     pub fn get(&self, pos: Pos) -> Option<&Cell> {
@@ -62,6 +71,10 @@ impl Board {
         };
 
         Ok(())
+    }
+
+    pub fn iter(&self) -> Iter<Vec<Cell>> {
+        self.b.iter()
     }
 
     pub fn iter_neighbors(&self, pos: Pos) -> impl Iterator<Item = Pos> {
@@ -119,6 +132,17 @@ mod tests {
             vec![Cell::Closed, Cell::Closed, Cell::Closed],
             vec![Cell::Closed, Cell::Closed, Cell::Closed],
         ];
+        assert_board(b, expect);
+    }
+
+    #[test]
+    fn init_from_matrix() {
+        let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
+        let expect = vec![
+            vec![Cell::Closed, Cell::Mine, Cell::Closed, Cell::Mine],
+            vec![Cell::Mine, Cell::Closed, Cell::Mine, Cell::Closed],
+        ];
+        let b = Board::from_matrix(board);
         assert_board(b, expect);
     }
 
