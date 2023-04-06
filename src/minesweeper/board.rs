@@ -54,23 +54,20 @@ impl Board {
     }
 
     pub fn get(&self, pos: Pos) -> Option<&Cell> {
-        match self.b.get(pos.row as usize) {
-            Some(row) => row.get(pos.col as usize),
-            None => None,
-        }
+        self.b
+            .get(pos.row as usize)
+            .and_then(|row| row.get(pos.col as usize))
     }
 
     pub fn set(&mut self, pos: Pos, cell: Cell) -> Result<(), BoardError> {
-        let err = BoardError::SetCellError { pos, cell };
-        match self.b.get_mut(pos.row as usize) {
-            Some(row) => {
-                let c = row.get_mut(pos.col as usize).ok_or(err)?;
-                *c = cell;
-            }
-            None => return Err(err),
-        };
-
-        Ok(())
+        self.b
+            .get_mut(pos.row as usize)
+            .ok_or_else(|| BoardError::SetCellError { pos, cell })
+            .and_then(|row| {
+                row.get_mut(pos.col as usize)
+                    .ok_or_else(|| BoardError::SetCellError { pos, cell })
+            })
+            .map(|c| *c = cell)
     }
 
     pub fn iter(&self) -> Iter<Vec<Cell>> {
@@ -78,21 +75,13 @@ impl Board {
     }
 
     pub fn iter_neighbors(&self, pos: Pos) -> impl Iterator<Item = Pos> {
-        let height = self.height;
-        let width = self.width;
+        let last_row = self.height as i8 - 1;
+        let row_start = (pos.row as i8 - 1).clamp(0, last_row) as u8;
+        let row_end = (pos.row as i8 + 1).clamp(0, last_row) as u8;
 
-        let row_start = if pos.row > 0 { pos.row - 1 } else { pos.row };
-        let row_end = if pos.row < height - 1 {
-            pos.row + 1
-        } else {
-            pos.row
-        };
-        let col_start = if pos.col > 0 { pos.col - 1 } else { pos.col };
-        let col_end = if pos.col < width - 1 {
-            pos.col + 1
-        } else {
-            pos.col
-        };
+        let last_col = self.width as i8 - 1;
+        let col_start = (pos.col as i8 - 1).clamp(0, last_col) as u8;
+        let col_end = (pos.col as i8 + 1).clamp(0, last_col) as u8;
 
         let cell_row = pos.row;
         let cell_col = pos.col;
