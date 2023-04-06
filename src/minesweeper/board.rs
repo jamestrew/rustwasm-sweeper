@@ -53,11 +53,42 @@ impl Board {
 
         Ok(())
     }
+
+    pub fn iter_neighbors(&self, pos: Pos) -> impl Iterator<Item = Pos> {
+        let height = self.0.len();
+        let width = self.0[0].len();
+
+        let row_start = if pos.row > 0 { pos.row - 1 } else { pos.row };
+        let row_end = if pos.row < height - 1 {
+            pos.row + 1
+        } else {
+            pos.row
+        };
+        let col_start = if pos.col > 0 { pos.col - 1 } else { pos.col };
+        let col_end = if pos.col < width - 1 {
+            pos.col + 1
+        } else {
+            pos.col
+        };
+
+        let cell_row = pos.row;
+        let cell_col = pos.col;
+        (row_start..=row_end).flat_map(move |row| {
+            (col_start..=col_end).filter_map(move |col| {
+                if row == cell_row && col == cell_col {
+                    None
+                } else {
+                    Some(Pos { row, col })
+                }
+            })
+        })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashSet;
 
     fn assert_board(actual: Board, expect: Vec<Vec<Cell>>) {
         assert_eq!(expect.len(), actual.0.len());
@@ -116,5 +147,48 @@ mod tests {
                 cell: Cell::Mine
             }
         );
+    }
+
+    #[test]
+    fn board_corner_iter_neighbors() {
+        let b = Board::new(4, 3);
+        let ret: HashSet<_> = b.iter_neighbors(Pos { row: 0, col: 0 }).collect();
+        let expect = HashSet::from([
+            Pos { row: 0, col: 1 },
+            Pos { row: 1, col: 0 },
+            Pos { row: 1, col: 1 },
+        ]);
+        assert_eq!(ret, expect);
+    }
+
+    #[test]
+    fn board_edge_iter_neighbors() {
+        let b = Board::new(4, 3);
+        let ret: HashSet<_> = b.iter_neighbors(Pos { row: 1, col: 0 }).collect();
+        let expect = HashSet::from([
+            Pos { row: 0, col: 0 },
+            Pos { row: 0, col: 1 },
+            Pos { row: 1, col: 1 },
+            Pos { row: 2, col: 0 },
+            Pos { row: 2, col: 1 },
+        ]);
+        assert_eq!(ret, expect);
+    }
+
+    #[test]
+    fn board_center_iter_neighbors() {
+        let b = Board::new(4, 3);
+        let ret: HashSet<_> = b.iter_neighbors(Pos { row: 1, col: 1 }).collect();
+        let expect = HashSet::from([
+            Pos { row: 0, col: 0 },
+            Pos { row: 0, col: 1 },
+            Pos { row: 0, col: 2 },
+            Pos { row: 1, col: 0 },
+            Pos { row: 1, col: 2 },
+            Pos { row: 2, col: 0 },
+            Pos { row: 2, col: 1 },
+            Pos { row: 2, col: 2 },
+        ]);
+        assert_eq!(ret, expect);
     }
 }
