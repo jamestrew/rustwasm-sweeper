@@ -90,13 +90,20 @@ impl Minesweeper {
                     .map_or(false, |&cell| cell == Cell::Mine)
             })
             .count();
-        let _ = self.board.set(pos, Cell::Open(neighboring_mines));
-        self.open_empty_neighbors(pos);
+        let _ = self.board.set(pos, Cell::Open(neighboring_mines as u8));
+        self.open_empty_neighbors(pos, neighboring_mines);
     }
 
-    fn open_empty_neighbors(&mut self, _pos: Pos) {
-        // self.iter_neighbors(&pos)
-        //     .filter(|cell| self.board[cell.row][cell.col] == Cell::Closed);
+    fn open_empty_neighbors(&mut self, pos: Pos, neighboring_mines: usize) {
+        if neighboring_mines != 0 {
+            return;
+        }
+        self.board
+            .iter_neighbors(pos)
+            .for_each(|new_pos| self.open_cell(new_pos));
+    }
+}
+
 impl Display for Minesweeper {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for row in self.board.iter() {
@@ -214,5 +221,42 @@ mod tests {
         assert_eq!(game.state, GameState::Playing);
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Lose);
+    }
+
+    #[test]
+    fn open_cell_with_neighboring_mines() {
+        let board = vec![vec![1, 1, 0], vec![1, 0, 1], vec![1, 0, 1]];
+        let mut game = Minesweeper::from_matrix(board);
+
+        let pos = Pos { row: 1, col: 1 };
+        game.open_cell(pos);
+        assert_eq!(game.state, GameState::Playing);
+        assert_eq!(game.board.get(pos).unwrap(), &Cell::Open(6));
+
+        let pos = Pos { row: 0, col: 2 };
+        game.open_cell(pos);
+        assert_eq!(game.state, GameState::Playing);
+        assert_eq!(game.board.get(pos).unwrap(), &Cell::Open(2));
+
+        let pos = Pos { row: 2, col: 1 };
+        game.open_cell(pos);
+        assert_eq!(game.state, GameState::Playing);
+        assert_eq!(game.board.get(pos).unwrap(), &Cell::Open(4));
+    }
+
+    #[test]
+    fn open_cell_chaining_neighbors() {
+        let board = vec![vec![1, 1, 0, 0], vec![1, 0, 0, 0], vec![1, 0, 0, 0]];
+        let mut game = Minesweeper::from_matrix(board);
+
+        let pos = Pos { row: 2, col: 3 };
+        game.open_cell(pos);
+
+        let expect = "\
+        xx10\n\
+        x410\n\
+        x200\n";
+        let display = format!("{}", game);
+        assert_eq!(expect, display);
     }
 }
