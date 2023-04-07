@@ -1,6 +1,6 @@
 use super::cell::Cell;
-use std::fmt::Display;
 use std::error::Error;
+use std::fmt::Display;
 use std::slice::Iter;
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
@@ -74,6 +74,12 @@ impl Board {
 
     pub fn iter(&self) -> Iter<Vec<Cell>> {
         self.b.iter()
+    }
+
+    pub fn iter_pos(&self) -> impl Iterator<Item = Pos> {
+        let height = self.height;
+        let width = self.width;
+        (0..height).flat_map(move |row| (0..width).map(move |col| Pos { row, col }))
     }
 
     pub fn iter_neighbors(&self, pos: Pos) -> impl Iterator<Item = Pos> {

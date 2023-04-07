@@ -59,23 +59,15 @@ impl Minesweeper {
         }
     }
 
-    pub fn rand_mine_pos(&self) -> Pos {
-        let mut tr = rand::thread_rng();
-        Pos {
-            row: tr.gen_range(0..self.board.height),
-            col: tr.gen_range(0..self.board.width),
-        }
-    }
-
     pub fn create_mines(&mut self) {
-        let mut mines_created: usize = 0;
-        let mut mine_pos;
+        let mut allowable_mine_pos: Vec<_> = self.board.iter_pos().collect();
+
+        let mut mines_created = 0;
         while mines_created < self.mine_count {
-            mine_pos = self.rand_mine_pos();
-            if let Some(Cell::Closed) = self.board.get(mine_pos) {
-                if self.board.set(mine_pos, Cell::Mine).is_ok() {
-                    mines_created += 1;
-                }
+            let index = rand::thread_rng().gen_range(0..allowable_mine_pos.len());
+            let mine_pos = allowable_mine_pos.remove(index);
+            if self.board.set(mine_pos, Cell::Mine).is_ok() {
+                mines_created += 1;
             }
         }
     }
