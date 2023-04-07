@@ -59,8 +59,12 @@ impl Minesweeper {
         }
     }
 
-    pub fn create_mines(&mut self) {
-        let mut allowable_mine_pos: Vec<_> = self.board.iter_pos().collect();
+    pub fn create_mines(&mut self, start_pos: Option<Pos>) {
+        let mut allowable_mine_pos: Vec<_> = self
+            .board
+            .iter_pos()
+            .filter(|&pos| Some(pos) != start_pos)
+            .collect();
 
         let mut mines_created = 0;
         while mines_created < self.mine_count {
@@ -200,9 +204,9 @@ mod tests {
     }
 
     #[test]
-    fn populate_board_with_some_mines() {
+    fn populate_board_with_some_mines_freely() {
         let mut game = Minesweeper::new(4, 3, 3);
-        game.create_mines();
+        game.create_mines(None);
         let mine_count = game
             .board
             .iter()
@@ -210,6 +214,21 @@ mod tests {
             .filter(|&cell| *cell == Cell::Mine)
             .count();
         assert_eq!(mine_count, game.mine_count);
+    }
+
+    #[test]
+    fn populate_board_with_some_mines_after_first_click() {
+        let mut game = Minesweeper::new(4, 3, 11);
+        let pos = Pos { row: 0, col: 0 };
+        game.create_mines(Some(pos));
+        let mine_count = game
+            .board
+            .iter()
+            .flatten()
+            .filter(|&cell| *cell == Cell::Mine)
+            .count();
+        assert_eq!(mine_count, game.mine_count);
+        assert_eq!(game.board.get(pos).unwrap(), &Cell::Closed);
     }
 
     #[test]
