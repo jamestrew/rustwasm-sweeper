@@ -1,5 +1,7 @@
 use super::cell::Cell;
-use std::{error::Error, fmt::Display, slice::Iter};
+use std::fmt::Display;
+use std::error::Error;
+use std::slice::Iter;
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Pos {

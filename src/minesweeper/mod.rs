@@ -2,6 +2,7 @@ mod board;
 mod cell;
 
 use rand::Rng;
+use std::error::Error;
 use std::fmt::Display;
 
 pub use board::{Board, Pos};
@@ -12,6 +13,21 @@ pub enum GameState {
     Playing,
     Win,
     Lose,
+}
+
+#[derive(Debug)]
+pub enum MinesweeperError {
+    GameError,
+}
+
+impl Error for MinesweeperError {}
+
+impl Display for MinesweeperError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MinesweeperError::GameError => f.write_str("Something's fucky"),
+        }
+    }
 }
 
 pub struct Minesweeper {
