@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Cell {
-    Open(usize),
+    Open(u8),
     Closed,
     Flagged,
     Mine,

@@ -2,6 +2,7 @@ mod board;
 mod cell;
 
 use rand::Rng;
+use std::fmt::Display;
 
 pub use board::{Board, Pos};
 pub use cell::Cell;
@@ -96,6 +97,25 @@ impl Minesweeper {
     fn open_empty_neighbors(&mut self, _pos: Pos) {
         // self.iter_neighbors(&pos)
         //     .filter(|cell| self.board[cell.row][cell.col] == Cell::Closed);
+impl Display for Minesweeper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in self.board.iter() {
+            for &cell in row.iter() {
+                let ch = match cell {
+                    Cell::Open(count) => (b'0' + count) as char,
+                    Cell::Closed => 'x',
+                    Cell::Flagged => 'F',
+                    Cell::Mine => match self.state {
+                        GameState::Playing => 'x',
+                        GameState::Lose => '!',
+                        GameState::Win => return Err(std::fmt::Error),
+                    },
+                };
+                write!(f, "{}", ch)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
@@ -116,6 +136,52 @@ mod tests {
         let game = Minesweeper::from_matrix(board);
         assert_eq!(game.mine_count, 4);
         assert_eq!(game.state, GameState::Playing);
+    }
+
+    #[test]
+    fn print_game_initial() {
+        let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
+        let game = Minesweeper::from_matrix(board);
+
+        let display = format!("{}", game);
+        let expect = "xxxx\nxxxx\n";
+        assert_eq!(expect, display);
+    }
+
+    #[test]
+    fn print_game_playing() {
+        let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
+        let mut game = Minesweeper::from_matrix(board);
+        game.open_cell(Pos { row: 0, col: 0 });
+        game.open_cell(Pos { row: 1, col: 3 });
+
+        let display = format!("{}", game);
+        let expect = "2xxx\nxxx2\n";
+        assert_eq!(expect, display);
+    }
+
+    #[test]
+    #[should_panic]
+    fn print_game_won() {
+        let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
+        let mut game = Minesweeper::from_matrix(board);
+        game.open_cell(Pos { row: 0, col: 0 });
+        game.open_cell(Pos { row: 1, col: 3 });
+        game.state = GameState::Win;
+
+        game.to_string();
+    }
+
+    #[test]
+    fn print_game_lose() {
+        let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
+        let mut game = Minesweeper::from_matrix(board);
+        game.open_cell(Pos { row: 0, col: 0 });
+        game.open_cell(Pos { row: 0, col: 1 });
+
+        let display = format!("{}", game);
+        let expect = "2!x!\n!x!x\n";
+        assert_eq!(expect, display);
     }
 
     #[test]
