@@ -5,8 +5,8 @@ use rand::Rng;
 use std::error::Error;
 use std::fmt::Display;
 
-pub use board::{Board, Pos};
-pub use cell::Cell;
+use board::{Board, Pos};
+use cell::Cell;
 
 #[derive(Debug, PartialEq)]
 pub enum GameState {
@@ -78,7 +78,7 @@ impl Minesweeper {
 
     pub fn flag_cell(&mut self, pos: Pos) {
         if let Some(Cell::Closed) = self.board.get(pos) {
-            let _ = self.board.set(pos, Cell::Flagged);
+            _ = self.board.set(pos, Cell::Flagged);
         }
     }
 
@@ -102,7 +102,7 @@ impl Minesweeper {
                     .map_or(false, |&cell| cell == Cell::Mine)
             })
             .count();
-        let _ = self.board.set(pos, Cell::Open(neighboring_mines as u8));
+        _ = self.board.set(pos, Cell::Open(neighboring_mines as u8));
         self.open_empty_neighbors(pos, neighboring_mines);
     }
 
@@ -244,7 +244,7 @@ mod tests {
     fn open_cell_with_mine() {
         let mut game = Minesweeper::new(4, 3, 3);
         let pos = Pos { row: 0, col: 0 };
-        let _ = game.board.set(pos, Cell::Mine);
+        _ = game.board.set(pos, Cell::Mine);
         assert_eq!(game.state, GameState::Playing);
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Lose);
