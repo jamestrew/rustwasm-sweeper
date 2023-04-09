@@ -2,3 +2,123 @@ body {
 	font-family: sans-serif;
 	text-align: center;
 }
+
+.App {
+  background-color: #abc;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+}
+
+.game {
+  margin-top: 100px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.Options {
+  padding-top: 30px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-input {
+  width: 50px;
+}
+
+#option-table {
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+#option-table thead tr {
+  text-align: left;
+}
+
+#option-table th,
+#option-table td {
+  padding-right: 12px;
+}
+
+.Board {
+  position: relative;
+  background-color: grey;
+  border: 3px solid black;
+  display: grid;
+}
+
+.Cell {
+  text-align: center;
+  border: 3px solid grey;
+  cursor: default;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Scoreboard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #c0c0c0;
+  border: 3px solid black;
+  margin-bottom: -3px;
+  height: 50px;
+  width: 200px;
+}
+
+// @font-face {
+//   font-family: "digital-clock-font";
+//   src: url("../public/digital-7 (mono).ttf");
+// }
+
+.Counter {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  margin: 12px;
+  color: red;
+  font-size: 2em;
+  font-weight: bold;
+  // font-family: "digital-clock-font";
+  width: 3em;
+  height: 1em;
+  background-color: grey;
+  padding-right: 1px;
+  cursor: default;
+  user-select: none;
+}
+
+.MinesweeperGuy {
+  padding: 12px;
+  font-size: 2em;
+  cursor: default;
+  user-select: none;
+}
+
+.Leaderboards {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px;
+}
+
+.Leaderboard {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  /* width: 225px; */
+  height: 150px;
+}
+
+.Leaderboard table td {
+  padding: 0em 0em 0em 1em;
+}

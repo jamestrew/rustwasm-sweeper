@@ -1,5 +1,5 @@
-pub mod app;
 pub mod minesweeper;
+pub mod ui;
 use cfg_if::cfg_if;
 
 cfg_if! {
@@ -9,7 +9,7 @@ if #[cfg(feature = "hydrate")] {
 
     #[wasm_bindgen]
     pub fn hydrate() {
-      use app::*;
+      use ui::*;
       use leptos::*;
 
       // initializes logging using the `log` crate
