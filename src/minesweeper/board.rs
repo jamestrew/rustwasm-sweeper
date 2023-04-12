@@ -1,4 +1,4 @@
-use super::cell::{Cell, CellKind};
+use super::cell::CellKind;
 use super::pos::Pos;
 use std::error::Error;
 use std::fmt::Display;
@@ -75,11 +75,6 @@ impl Board {
 
     pub fn iter(&self) -> Iter<Vec<CellKind>> {
         self.b.iter()
-    }
-
-    pub fn iter_cells(&self) -> impl Iterator<Item = Cell> + '_ {
-        self.iter_pos()
-            .filter_map(move |pos| self.get(pos).map(|cell_kind| Cell::new(pos, *cell_kind)))
     }
 
     pub fn iter_pos(&self) -> impl Iterator<Item = Pos> {

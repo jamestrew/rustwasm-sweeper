@@ -1,14 +1,15 @@
-mod pos;
 mod board;
 mod cell;
+mod pos;
 
 use rand::Rng;
 use std::error::Error;
 use std::fmt::Display;
 
-use pos::Pos;
 use board::Board;
+pub use cell::Cell;
 use cell::CellKind;
+use pos::Pos;
 
 #[derive(Debug, PartialEq)]
 pub enum GameState {
@@ -115,6 +116,14 @@ impl Minesweeper {
         self.board
             .iter_neighbors(pos)
             .for_each(|new_pos| self.open_cell(new_pos));
+    }
+
+    pub fn iter_board(&self) -> impl Iterator<Item = Cell> + '_ {
+        self.board.iter_pos().filter_map(move |pos| {
+            self.board
+                .get(pos)
+                .map(|cell_kind| Cell::new(pos, *cell_kind))
+        })
     }
 }
 
