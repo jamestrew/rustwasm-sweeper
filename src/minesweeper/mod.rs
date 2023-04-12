@@ -1,3 +1,4 @@
+mod pos;
 mod board;
 mod cell;
 
@@ -5,8 +6,9 @@ use rand::Rng;
 use std::error::Error;
 use std::fmt::Display;
 
-use board::{Board, Pos};
-use cell::Cell;
+use pos::Pos;
+use board::Board;
+use cell::CellKind;
 
 #[derive(Debug, PartialEq)]
 pub enum GameState {
@@ -50,7 +52,7 @@ impl Minesweeper {
         let mine_count = board
             .iter()
             .flatten()
-            .filter(|&cell| *cell == Cell::Mine)
+            .filter(|&kind| *kind == CellKind::Mine)
             .count();
         Self {
             mine_count,
@@ -70,23 +72,23 @@ impl Minesweeper {
         while mines_created < self.mine_count {
             let index = rand::thread_rng().gen_range(0..allowable_mine_pos.len());
             let mine_pos = allowable_mine_pos.remove(index);
-            if self.board.set(mine_pos, Cell::Mine).is_ok() {
+            if self.board.set(mine_pos, CellKind::Mine).is_ok() {
                 mines_created += 1;
             }
         }
     }
 
     pub fn flag_cell(&mut self, pos: Pos) {
-        if let Some(Cell::Closed) = self.board.get(pos) {
-            _ = self.board.set(pos, Cell::Flagged);
+        if let Some(CellKind::Closed) = self.board.get(pos) {
+            _ = self.board.set(pos, CellKind::Flagged);
         }
     }
 
     pub fn open_cell(&mut self, pos: Pos) {
-        if let Some(cell) = self.board.get(pos) {
-            match cell {
-                Cell::Mine => self.state = GameState::Lose,
-                Cell::Closed => self.check_neighbor(pos),
+        if let Some(kind) = self.board.get(pos) {
+            match kind {
+                CellKind::Mine => self.state = GameState::Lose,
+                CellKind::Closed => self.check_neighbor(pos),
                 _ => return,
             }
         }
@@ -99,10 +101,10 @@ impl Minesweeper {
             .filter(|&cell_pos| {
                 self.board
                     .get(cell_pos)
-                    .map_or(false, |&cell| cell == Cell::Mine)
+                    .map_or(false, |&kind| kind == CellKind::Mine)
             })
             .count();
-        _ = self.board.set(pos, Cell::Open(neighboring_mines as u8));
+        _ = self.board.set(pos, CellKind::Open(neighboring_mines as u8));
         self.open_empty_neighbors(pos, neighboring_mines);
     }
 
@@ -121,10 +123,10 @@ impl Display for Minesweeper {
         for row in self.board.iter() {
             for &cell in row.iter() {
                 let ch = match cell {
-                    Cell::Open(count) => (b'0' + count) as char,
-                    Cell::Closed => 'x',
-                    Cell::Flagged => 'F',
-                    Cell::Mine => match self.state {
+                    CellKind::Open(count) => (b'0' + count) as char,
+                    CellKind::Closed => 'x',
+                    CellKind::Flagged => 'F',
+                    CellKind::Mine => match self.state {
                         GameState::Playing => 'x',
                         GameState::Lose => '!',
                         GameState::Win => return Err(std::fmt::Error),
@@ -211,7 +213,7 @@ mod tests {
             .board
             .iter()
             .flatten()
-            .filter(|&cell| *cell == Cell::Mine)
+            .filter(|&kind| *kind == CellKind::Mine)
             .count();
         assert_eq!(mine_count, game.mine_count);
     }
@@ -225,10 +227,10 @@ mod tests {
             .board
             .iter()
             .flatten()
-            .filter(|&cell| *cell == Cell::Mine)
+            .filter(|&kind| *kind == CellKind::Mine)
             .count();
         assert_eq!(mine_count, game.mine_count);
-        assert_eq!(game.board.get(pos).unwrap(), &Cell::Closed);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
     }
 
     #[test]
@@ -237,14 +239,14 @@ mod tests {
         let pos = Pos { row: 0, col: 0 };
         game.flag_cell(pos);
         assert_eq!(game.state, GameState::Playing);
-        assert_eq!(*game.board.get(pos).unwrap(), Cell::Flagged);
+        assert_eq!(*game.board.get(pos).unwrap(), CellKind::Flagged);
     }
 
     #[test]
     fn open_cell_with_mine() {
         let mut game = Minesweeper::new(4, 3, 3);
         let pos = Pos { row: 0, col: 0 };
-        _ = game.board.set(pos, Cell::Mine);
+        _ = game.board.set(pos, CellKind::Mine);
         assert_eq!(game.state, GameState::Playing);
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Lose);
@@ -258,17 +260,17 @@ mod tests {
         let pos = Pos { row: 1, col: 1 };
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Playing);
-        assert_eq!(game.board.get(pos).unwrap(), &Cell::Open(6));
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Open(6));
 
         let pos = Pos { row: 0, col: 2 };
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Playing);
-        assert_eq!(game.board.get(pos).unwrap(), &Cell::Open(2));
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Open(2));
 
         let pos = Pos { row: 2, col: 1 };
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Playing);
-        assert_eq!(game.board.get(pos).unwrap(), &Cell::Open(4));
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Open(4));
     }
 
     #[test]

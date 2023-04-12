@@ -1,17 +1,12 @@
-use super::cell::Cell;
+use super::cell::{Cell, CellKind};
+use super::pos::Pos;
 use std::error::Error;
 use std::fmt::Display;
 use std::slice::Iter;
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
-pub struct Pos {
-    pub row: u8,
-    pub col: u8,
-}
-
 #[derive(Debug, PartialEq)]
 pub enum BoardError {
-    SetCellError { pos: Pos, cell: Cell },
+    SetCellError { pos: Pos, kind: CellKind },
 }
 
 impl Error for BoardError {}
@@ -19,15 +14,15 @@ impl Error for BoardError {}
 impl Display for BoardError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BoardError::SetCellError { pos, cell } => {
-                write!(f, "failed to set {:?} at {:?}", cell, pos)
+            BoardError::SetCellError { pos, kind } => {
+                write!(f, "failed to set {:?} at {:?}", kind, pos)
             }
         }
     }
 }
 
 pub struct Board {
-    b: Vec<Vec<Cell>>,
+    b: Vec<Vec<CellKind>>,
     pub height: u8,
     pub width: u8,
 }
@@ -35,7 +30,7 @@ pub struct Board {
 impl Board {
     pub fn new(height: u8, width: u8) -> Self {
         let b = (0..height)
-            .map(|_| (0..width).map(|_| Cell::Closed).collect())
+            .map(|_| (0..width).map(|_| CellKind::Closed).collect())
             .collect();
 
         Self { b, height, width }
@@ -48,32 +43,43 @@ impl Board {
             .into_iter()
             .map(|row| {
                 row.into_iter()
-                    .map(|val| if val == 0 { Cell::Closed } else { Cell::Mine })
+                    .map(|val| {
+                        if val == 0 {
+                            CellKind::Closed
+                        } else {
+                            CellKind::Mine
+                        }
+                    })
                     .collect()
             })
             .collect();
         Self { b, height, width }
     }
 
-    pub fn get(&self, pos: Pos) -> Option<&Cell> {
+    pub fn get(&self, pos: Pos) -> Option<&CellKind> {
         self.b
             .get(pos.row as usize)
             .and_then(|row| row.get(pos.col as usize))
     }
 
-    pub fn set(&mut self, pos: Pos, cell: Cell) -> Result<(), BoardError> {
+    pub fn set(&mut self, pos: Pos, kind: CellKind) -> Result<(), BoardError> {
         self.b
             .get_mut(pos.row as usize)
-            .ok_or_else(|| BoardError::SetCellError { pos, cell })
+            .ok_or_else(|| BoardError::SetCellError { pos, kind })
             .and_then(|row| {
                 row.get_mut(pos.col as usize)
-                    .ok_or_else(|| BoardError::SetCellError { pos, cell })
+                    .ok_or_else(|| BoardError::SetCellError { pos, kind })
             })
-            .map(|c| *c = cell)
+            .map(|c| *c = kind)
     }
 
-    pub fn iter(&self) -> Iter<Vec<Cell>> {
+    pub fn iter(&self) -> Iter<Vec<CellKind>> {
         self.b.iter()
+    }
+
+    pub fn iter_cells(&self) -> impl Iterator<Item = Cell> + '_ {
+        self.iter_pos()
+            .filter_map(move |pos| self.get(pos).map(|cell_kind| Cell::new(pos, *cell_kind)))
     }
 
     pub fn iter_pos(&self) -> impl Iterator<Item = Pos> {
@@ -110,7 +116,7 @@ mod tests {
     use super::*;
     use std::collections::HashSet;
 
-    fn assert_board(actual: Board, expect: Vec<Vec<Cell>>) {
+    fn assert_board(actual: Board, expect: Vec<Vec<CellKind>>) {
         assert_eq!(expect.len(), actual.height as usize);
         for i in 0..expect.len() {
             assert_eq!(expect[i].len(), actual.width as usize);
@@ -124,10 +130,10 @@ mod tests {
     fn init_board() {
         let b = Board::new(4, 3);
         let expect = vec![
-            vec![Cell::Closed, Cell::Closed, Cell::Closed],
-            vec![Cell::Closed, Cell::Closed, Cell::Closed],
-            vec![Cell::Closed, Cell::Closed, Cell::Closed],
-            vec![Cell::Closed, Cell::Closed, Cell::Closed],
+            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
+            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
+            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
+            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
         ];
         assert_board(b, expect);
     }
@@ -136,8 +142,18 @@ mod tests {
     fn init_from_matrix() {
         let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
         let expect = vec![
-            vec![Cell::Closed, Cell::Mine, Cell::Closed, Cell::Mine],
-            vec![Cell::Mine, Cell::Closed, Cell::Mine, Cell::Closed],
+            vec![
+                CellKind::Closed,
+                CellKind::Mine,
+                CellKind::Closed,
+                CellKind::Mine,
+            ],
+            vec![
+                CellKind::Mine,
+                CellKind::Closed,
+                CellKind::Mine,
+                CellKind::Closed,
+            ],
         ];
         let b = Board::from_matrix(board);
         assert_board(b, expect);
@@ -146,8 +162,8 @@ mod tests {
     #[test]
     fn board_get_inbounds() {
         let mut b = Board::new(4, 3);
-        b.b[0][1] = Cell::Mine;
-        assert_eq!(b.get(Pos { row: 0, col: 1 }).unwrap(), &Cell::Mine);
+        b.b[0][1] = CellKind::Mine;
+        assert_eq!(b.get(Pos { row: 0, col: 1 }).unwrap(), &CellKind::Mine);
     }
 
     #[test]
@@ -160,22 +176,22 @@ mod tests {
     fn board_set_inbounds() {
         let mut b = Board::new(4, 3);
         let pos = Pos { row: 0, col: 0 };
-        assert_eq!(b.get(pos).unwrap(), &Cell::Closed);
-        assert_eq!(b.set(pos, Cell::Mine).unwrap(), ());
-        assert_eq!(b.get(pos).unwrap(), &Cell::Mine);
+        assert_eq!(b.get(pos).unwrap(), &CellKind::Closed);
+        assert_eq!(b.set(pos, CellKind::Mine).unwrap(), ());
+        assert_eq!(b.get(pos).unwrap(), &CellKind::Mine);
     }
 
     #[test]
     fn board_set_outbounds() {
         let mut b = Board::new(4, 3);
         let pos = Pos { row: 100, col: 0 };
-        let res = b.set(pos, Cell::Mine);
+        let res = b.set(pos, CellKind::Mine);
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err(),
             BoardError::SetCellError {
                 pos,
-                cell: Cell::Mine
+                kind: CellKind::Mine
             }
         );
     }
