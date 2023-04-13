@@ -13,6 +13,7 @@ pub use pos::Pos;
 
 #[derive(Debug, PartialEq)]
 pub enum GameState {
+    Unstarted,
     Playing,
     Win,
     Lose,
@@ -44,7 +45,7 @@ impl Minesweeper {
         Minesweeper {
             mine_count,
             board: Board::new(height, width),
-            state: GameState::Playing,
+            state: GameState::Unstarted,
         }
     }
 
@@ -77,6 +78,8 @@ impl Minesweeper {
                 mines_created += 1;
             }
         }
+
+        self.state = GameState::Playing;
     }
 
     pub fn flag_cell(&mut self, pos: Pos) {
@@ -136,6 +139,7 @@ impl Display for Minesweeper {
                     CellKind::Closed => 'x',
                     CellKind::Flagged => 'F',
                     CellKind::Mine => match self.state {
+                        GameState::Unstarted => 'x',
                         GameState::Playing => 'x',
                         GameState::Lose => '!',
                         GameState::Win => return Err(std::fmt::Error),
@@ -157,7 +161,7 @@ mod tests {
     fn basic_board_init() {
         let result = Minesweeper::new(4, 3, 0);
         assert_eq!(result.mine_count, 0);
-        assert_eq!(result.state, GameState::Playing);
+        assert_eq!(result.state, GameState::Unstarted);
     }
 
     #[test]
@@ -217,6 +221,7 @@ mod tests {
     #[test]
     fn populate_board_with_some_mines_freely() {
         let mut game = Minesweeper::new(4, 3, 3);
+        assert_eq!(game.state, GameState::Unstarted);
         game.create_mines(None);
         let mine_count = game
             .board
@@ -225,11 +230,13 @@ mod tests {
             .filter(|&kind| *kind == CellKind::Mine)
             .count();
         assert_eq!(mine_count, game.mine_count);
+        assert_eq!(game.state, GameState::Playing);
     }
 
     #[test]
     fn populate_board_with_some_mines_after_first_click() {
         let mut game = Minesweeper::new(4, 3, 11);
+        assert_eq!(game.state, GameState::Unstarted);
         let pos = Pos { row: 0, col: 0 };
         game.create_mines(Some(pos));
         let mine_count = game
@@ -240,6 +247,7 @@ mod tests {
             .count();
         assert_eq!(mine_count, game.mine_count);
         assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
+        assert_eq!(game.state, GameState::Playing);
     }
 
     #[test]
@@ -247,7 +255,6 @@ mod tests {
         let mut game = Minesweeper::new(4, 3, 3);
         let pos = Pos { row: 0, col: 0 };
         game.flag_cell(pos);
-        assert_eq!(game.state, GameState::Playing);
         assert_eq!(*game.board.get(pos).unwrap(), CellKind::Flagged);
     }
 
@@ -256,7 +263,6 @@ mod tests {
         let mut game = Minesweeper::new(4, 3, 3);
         let pos = Pos { row: 0, col: 0 };
         _ = game.board.set(pos, CellKind::Mine);
-        assert_eq!(game.state, GameState::Playing);
         game.open_cell(pos);
         assert_eq!(game.state, GameState::Lose);
     }
