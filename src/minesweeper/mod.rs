@@ -89,6 +89,12 @@ impl Minesweeper {
     }
 
     pub fn open_cell(&mut self, pos: Pos) {
+        match self.state {
+            GameState::Unstarted => self.create_mines(Some(pos)),
+            GameState::Playing => {}
+            _ => return,
+        }
+
         if let Some(kind) = self.board.get(pos) {
             match kind {
                 CellKind::Mine => self.state = GameState::Lose,
@@ -157,6 +163,14 @@ impl Display for Minesweeper {
 mod tests {
     use super::*;
 
+    fn count_mines(game: &Minesweeper) -> usize {
+        game.board
+            .iter()
+            .flatten()
+            .filter(|&kind| *kind == CellKind::Mine)
+            .count()
+    }
+
     #[test]
     fn basic_board_init() {
         let result = Minesweeper::new(4, 3, 0);
@@ -223,13 +237,7 @@ mod tests {
         let mut game = Minesweeper::new(4, 3, 3);
         assert_eq!(game.state, GameState::Unstarted);
         game.create_mines(None);
-        let mine_count = game
-            .board
-            .iter()
-            .flatten()
-            .filter(|&kind| *kind == CellKind::Mine)
-            .count();
-        assert_eq!(mine_count, game.mine_count);
+        assert_eq!(count_mines(&game), game.mine_count);
         assert_eq!(game.state, GameState::Playing);
     }
 
@@ -239,13 +247,7 @@ mod tests {
         assert_eq!(game.state, GameState::Unstarted);
         let pos = Pos { row: 0, col: 0 };
         game.create_mines(Some(pos));
-        let mine_count = game
-            .board
-            .iter()
-            .flatten()
-            .filter(|&kind| *kind == CellKind::Mine)
-            .count();
-        assert_eq!(mine_count, game.mine_count);
+        assert_eq!(count_mines(&game), game.mine_count);
         assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
         assert_eq!(game.state, GameState::Playing);
     }
@@ -259,7 +261,7 @@ mod tests {
     }
 
     #[test]
-    fn open_cell_with_mine() {
+    fn open_cell_with_mine_playing() {
         let mut game = Minesweeper::new(4, 3, 3);
         let pos = Pos { row: 0, col: 0 };
         _ = game.board.set(pos, CellKind::Mine);
@@ -268,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn open_cell_with_neighboring_mines() {
+    fn open_cell_with_neighboring_mines_playing() {
         let board = vec![vec![1, 1, 0], vec![1, 0, 1], vec![1, 0, 1]];
         let mut game = Minesweeper::from_matrix(board);
 
@@ -289,7 +291,7 @@ mod tests {
     }
 
     #[test]
-    fn open_cell_chaining_neighbors() {
+    fn open_cell_chaining_neighbors_playing() {
         let board = vec![vec![1, 1, 0, 0], vec![1, 0, 0, 0], vec![1, 0, 0, 0]];
         let mut game = Minesweeper::from_matrix(board);
 
@@ -302,5 +304,47 @@ mod tests {
         x200\n";
         let display = format!("{}", game);
         assert_eq!(expect, display);
+    }
+
+    #[test]
+    fn open_cell_unstarted() {
+        let mut game = Minesweeper::new(9, 9, 10);
+        assert_eq!(game.state, GameState::Unstarted);
+        assert_eq!(game.mine_count, 10);
+        assert_eq!(count_mines(&game), 0);
+
+        let pos = Pos { row: 0, col: 0 };
+        game.open_cell(pos);
+        let &cell_kind = game.board.get(pos).unwrap();
+        match cell_kind {
+            CellKind::Open(_) => assert!(true),
+            _ => assert!(false, "Expected Open CellKind variant"),
+        }
+
+        assert_eq!(game.state, GameState::Playing);
+        assert_eq!(game.mine_count, 10);
+        assert_eq!(count_mines(&game), 10);
+    }
+
+    #[test]
+    fn open_cell_win() {
+        let mut game = Minesweeper::new(9, 9, 10);
+        game.state = GameState::Win;
+
+        let pos = Pos { row: 0, col: 0 };
+        game.open_cell(pos);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
+        assert_eq!(game.state, GameState::Win);
+    }
+
+    #[test]
+    fn open_cell_lose() {
+        let mut game = Minesweeper::new(9, 9, 10);
+        game.state = GameState::Lose;
+
+        let pos = Pos { row: 0, col: 0 };
+        game.open_cell(pos);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
+        assert_eq!(game.state, GameState::Lose);
     }
 }
