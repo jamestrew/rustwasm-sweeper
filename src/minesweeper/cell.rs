@@ -62,21 +62,3 @@ impl Cell {
         }
     }
 }
-
-/*
-const cellIcon = new Map<number, Icon>([
-  [-2, { icon: "🚩", background: "white", color: "" }],
-  [-1, { icon: "", background: "white", color: "" }],
-  [0, { icon: "", background: OPEN_COLOR, color: "" }],
-  [1, { icon: "1", background: OPEN_COLOR, color: "#0000ff" }],
-  [2, { icon: "2", background: OPEN_COLOR, color: "#008200" }],
-  [3, { icon: "3", background: OPEN_COLOR, color: "#ff0000" }],
-  [4, { icon: "4", background: OPEN_COLOR, color: "#000084" }],
-  [5, { icon: "5", background: OPEN_COLOR, color: "#840000" }],
-  [6, { icon: "6", background: OPEN_COLOR, color: "#008284" }],
-  [7, { icon: "7", background: OPEN_COLOR, color: "#840084" }],
-  [8, { icon: "8", background: OPEN_COLOR, color: "#757575" }],
-  [9, { icon: "💣", background: OPEN_COLOR, color: "" }],
-]);
-
-*/

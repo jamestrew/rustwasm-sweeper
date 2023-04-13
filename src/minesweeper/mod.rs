@@ -9,7 +9,7 @@ use std::fmt::Display;
 use board::Board;
 pub use cell::Cell;
 use cell::CellKind;
-use pos::Pos;
+pub use pos::Pos;
 
 #[derive(Debug, PartialEq)]
 pub enum GameState {
