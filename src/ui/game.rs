@@ -6,6 +6,8 @@ use leptos_meta::{Title, TitleProps};
 pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
 
+    let board_cells = move || game.with(|gs| gs.iter_board().collect::<Vec<Cell>>());
+
     let open = move |_| {
         set_game.update(|game| game.open_cell(Pos { row: 0, col: 0 }));
         log!("opening");
@@ -15,23 +17,35 @@ pub fn Game(cx: Scope) -> impl IntoView {
 
     view! { cx,
         <Title text="Minesweeper" />
-        <p> { move || game.with(|gs| gs.to_string())} </p>
+        <For
+            each=move || board_cells()
+            key=|cell| cell.pos
+            view=move |cx, cell| {
+                    view! {
+                        cx,
+                        <CellComp
+                            _game=game
+                            cell
+                        />
+                    }
+                }
+        />
         <button on:click=open>"Open"</button>
     }
 }
 
 #[component]
-pub fn Cell(cx: Scope, _game: Minesweeper, cell: Cell) -> impl IntoView {
+pub fn CellComp(cx: Scope, _game: ReadSignal<Minesweeper>, cell: Cell) -> impl IntoView {
     const CELL_SIZE: usize = 30;
     let style = format!(
         r#"
-            width: {}px,
-            height: {}px`,
-            gridColumnStart: {},
-            gridRowStart: {},
-            background: {},
-            fontWeight: "525",
-            color: {},
+            width: {}px;
+            height: {}px`;
+            gridColumnStart: {};
+            gridRowStart: {};
+            background: {};
+            fontWeight: "525";
+            color: {};
         "#,
         CELL_SIZE - 6,
         CELL_SIZE - 6,
