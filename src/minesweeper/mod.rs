@@ -131,8 +131,13 @@ impl Minesweeper {
         self.board.iter_pos().filter_map(move |pos| {
             self.board
                 .get(pos)
-                .map(|cell_kind| Cell::new(pos, *cell_kind))
+                .map(|cell_kind| Cell::new(pos, *cell_kind, &self.state))
         })
+    }
+
+    pub fn get(&self, pos: Pos) -> Cell {
+        let kind = self.board.get(pos).unwrap_or(&CellKind::Closed);
+        Cell::new(pos, *kind, &self.state)
     }
 }
 

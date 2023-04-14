@@ -16,11 +16,14 @@ pub fn Game(cx: Scope) -> impl IntoView {
 
     let board_cells = move || {
         game.with(|g| {
+            log!("hello");
             g.iter_board()
-                .map(|cell| create_rw_signal(cx, cell))
-                .collect::<Vec<RwSignal<Cell>>>()
+                .map(|cell| create_rw_signal(cx, cell).read_only())
+                .collect::<Vec<ReadSignal<Cell>>>()
         })
     };
+    let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
+
     let style = move || {
         game.with(|g| {
             format!(
@@ -29,11 +32,6 @@ pub fn Game(cx: Scope) -> impl IntoView {
                 g.board.width as usize * CELL_SIZE
             )
         })
-    };
-
-    let open = move |_| {
-        set_game.update(|game| game.open_cell(Pos { row: 0, col: 0 }));
-        log!("opening");
     };
 
     create_effect(cx, move |_| {
@@ -47,44 +45,32 @@ pub fn Game(cx: Scope) -> impl IntoView {
 
         <div class="Board" style=style()>
             <For
-                each=move || board_cells()
-                key=|cell| cell.with(|c| c.pos)
-                view=move |cx, cell| {
-                        view! { cx,
-                            <CellComp cell />
-                        }
+                each=move || board_pos()
+                key=|&pos| pos
+                view=move |cx, pos| {
+                    view! { cx,
+                        <CellComp game pos />
                     }
+                }
             />
         </div>
-        <button on:click=open>"Open"</button>
     }
 }
 
 #[component]
-pub fn CellComp(cx: Scope, cell: RwSignal<Cell>) -> impl IntoView {
+pub fn CellComp(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView {
+    let cell = move || game.with(|g| g.get(pos));
     let GameUpdater { set_game } = use_context(cx).unwrap();
 
     let click = move |_| {
-        set_game.update(|game| {
-            game.open_cell(Pos {
-                row: cell.with(|c| c.pos.row),
-                col: cell.with(|c| c.pos.col),
-            })
-        });
-        log!("opening");
+        set_game.update(|game| game.open_cell(pos));
     };
 
-    create_effect(cx, move |_| {
-        cell.with(|c| {
-            log!("cell: ({},{}) {}", c.pos.row, c.pos.col, c.icon);
-        });
-    });
-
-    let class = format!("Cell {}", cell.with(|c| c.class.clone()));
+    let class = format!("Cell {}", cell().class);
     let style = format!(
         "grid-column-start: {}; grid-row-start: {};",
-        cell.with(|c| c.pos.col + 1),
-        cell.with(|c| c.pos.row + 1)
+        pos.col + 1,
+        pos.row + 1,
     );
 
     view! { cx,
@@ -93,7 +79,7 @@ pub fn CellComp(cx: Scope, cell: RwSignal<Cell>) -> impl IntoView {
             style=style
             on:click=click
         >
-            {move || cell.with(|c| c.icon.clone())}
+            {move || cell().icon}
         </div>
     }
 }

@@ -71,7 +71,7 @@ $open-bg: #c0c0c0;
   justify-content: center;
   width: #{$cell-size - (2 * $cell-border-size)}px;
   height: #{$cell-size - (2 * $cell-border-size)}px;
-  font-size: 525;
+  font-size: 15px;
 
   &.closed, &.flagged {
     background: white;
