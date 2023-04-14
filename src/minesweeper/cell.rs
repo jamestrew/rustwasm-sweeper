@@ -18,6 +18,7 @@ impl CellHighlights {
 
     pub fn new(fg: &str, bg: &str) -> Self {
         let bg = if bg == "" { Self::OPEN_BG } else { bg };
+        let fg = if fg == "" { "black" } else { fg };
         Self {
             fg: String::from(fg),
             bg: String::from(bg),
@@ -30,34 +31,36 @@ pub struct Cell {
     pub kind: CellKind,
     pub icon: String,
     pub hl: CellHighlights,
+    pub class: String,
 }
 
 impl Cell {
     pub fn new(pos: Pos, kind: CellKind) -> Self {
-        let (icon, hl) = Self::icon_and_highlight(kind);
+        let (icon, hl, class) = Self::icon_and_highlight(kind);
         Self {
             pos,
             kind,
             icon: String::from(icon),
             hl,
+            class: String::from(class)
         }
     }
 
-    fn icon_and_highlight(kind: CellKind) -> (&'static str, CellHighlights) {
+    fn icon_and_highlight(kind: CellKind) -> (&'static str, CellHighlights, &'static str) {
         match kind {
-            CellKind::Closed => ("", CellHighlights::new("", "white")),
-            CellKind::Flagged => ("🚩", CellHighlights::new("", "white")),
-            CellKind::Mine => ("💣", CellHighlights::new("", "#c0c0c0")),
+            CellKind::Closed => ("", CellHighlights::new("", "white"), "closed"),
+            CellKind::Flagged => ("🚩", CellHighlights::new("", "white"), "flagged"),
+            CellKind::Mine => ("💣", CellHighlights::new("", "#c0c0c0"), "mine"),
             CellKind::Open(count) => match count {
-                1 => ("1", CellHighlights::new("#0000ff", "")),
-                2 => ("2", CellHighlights::new("#008200", "")),
-                3 => ("3", CellHighlights::new("#ff0000", "")),
-                4 => ("4", CellHighlights::new("#000084", "")),
-                5 => ("5", CellHighlights::new("#840000", "")),
-                6 => ("6", CellHighlights::new("#008284", "")),
-                7 => ("7", CellHighlights::new("#840084", "")),
-                8 => ("8", CellHighlights::new("#757575", "")),
-                _ => ("", CellHighlights::new("", "")),
+                1 => ("1", CellHighlights::new("#0000ff", ""), "open-1"),
+                2 => ("2", CellHighlights::new("#008200", ""), "open-2"),
+                3 => ("3", CellHighlights::new("#ff0000", ""), "open-3"),
+                4 => ("4", CellHighlights::new("#000084", ""), "open-4"),
+                5 => ("5", CellHighlights::new("#840000", ""), "open-5"),
+                6 => ("6", CellHighlights::new("#008284", ""), "open-6"),
+                7 => ("7", CellHighlights::new("#840084", ""), "open-7"),
+                8 => ("8", CellHighlights::new("#757575", ""), "open-8"),
+                _ => ("", CellHighlights::new("", ""), "open-0"),
             },
         }
     }

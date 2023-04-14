@@ -8,7 +8,7 @@ use std::fmt::Display;
 
 use board::Board;
 pub use cell::Cell;
-use cell::CellKind;
+pub use cell::CellKind;
 pub use pos::Pos;
 
 #[derive(Debug, PartialEq)]
