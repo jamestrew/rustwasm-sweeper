@@ -76,7 +76,7 @@ $open-bg: #c0c0c0;
   &.closed, &.flagged {
     background: white;
   }
-  &.open {
+  &.open, &.mine {
     background: $open-bg;
     &.open-1 {
       color: #0000ff;

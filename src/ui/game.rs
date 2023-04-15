@@ -1,4 +1,4 @@
-use crate::minesweeper::{Cell, Minesweeper, Pos};
+use crate::minesweeper::{Minesweeper, Pos};
 use leptos::*;
 use leptos_meta::{Title, TitleProps};
 
@@ -12,17 +12,9 @@ struct GameUpdater {
 #[component]
 pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
+    let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
     provide_context(cx, GameUpdater { set_game });
 
-    let board_cells = move || {
-        game.with(|g| {
-            log!("hello");
-            g.iter_board()
-                .map(|cell| create_rw_signal(cx, cell).read_only())
-                .collect::<Vec<ReadSignal<Cell>>>()
-        })
-    };
-    let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
 
     let style = move || {
         game.with(|g| {
@@ -64,9 +56,10 @@ pub fn CellComp(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl Into
 
     let click = move |_| {
         set_game.update(|game| game.open_cell(pos));
+        log!("Cell ({},{}) {} {}", cell().pos.row, cell().pos.col, cell().icon, cell().class);
     };
 
-    let class = format!("Cell {}", cell().class);
+    let class = move || format!("Cell {}", cell().class);
     let style = format!(
         "grid-column-start: {}; grid-row-start: {};",
         pos.col + 1,
