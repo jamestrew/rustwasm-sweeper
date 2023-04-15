@@ -1,5 +1,5 @@
 use crate::minesweeper::{Minesweeper, Pos};
-use leptos::*;
+use leptos::{*, ev::MouseEvent};
 use leptos_meta::{Title, TitleProps};
 
 const CELL_SIZE: usize = 30;
@@ -54,10 +54,18 @@ pub fn CellComp(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl Into
     let cell = move || game.with(|g| g.get(pos));
     let GameUpdater { set_game } = use_context(cx).unwrap();
 
-    let click = move |_| {
-        set_game.update(|game| game.open_cell(pos));
-        log!("Cell ({},{}) {} {}", cell().pos.row, cell().pos.col, cell().icon, cell().class);
+    let click = move |e: MouseEvent| {
+        let button_num = e.button();
+
+        if button_num == 0 {
+            set_game.update(|game| game.open_cell(pos));
+            log!("opening - Cell ({},{}) {} {}", cell().pos.row, cell().pos.col, cell().icon, cell().class);
+        } else if button_num == 2 {
+            set_game.update(|game| game.flag_cell(pos));
+            log!("flagging - Cell ({},{}) {} {}", cell().pos.row, cell().pos.col, cell().icon, cell().class);
+        }
     };
+
 
     let class = move || format!("Cell {}", cell().class);
     let style = format!(
@@ -70,7 +78,8 @@ pub fn CellComp(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl Into
         <div
             class=class
             style=style
-            on:click=click
+            on:mousedown=click
+            on:contextmenu=move |e| e.prevent_default()
         >
             {move || cell().icon}
         </div>

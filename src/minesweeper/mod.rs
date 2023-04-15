@@ -83,8 +83,18 @@ impl Minesweeper {
     }
 
     pub fn flag_cell(&mut self, pos: Pos) {
-        if let Some(CellKind::Closed) = self.board.get(pos) {
-            _ = self.board.set(pos, CellKind::Flagged);
+        // if let Some(CellKind::Closed) = self.board.get(pos) {
+        //     _ = self.board.set(pos, CellKind::Flagged);
+        // }
+
+        match self.board.get(pos) {
+            Some(kind) => match *kind {
+                CellKind::Closed => _ = self.board.set(pos, CellKind::Flagged),
+                CellKind::Flagged => _ = self.board.set(pos, CellKind::Closed),
+                CellKind::Mine => _ = self.board.set(pos, CellKind::Flagged),
+                _ => {}
+            },
+            None => {}
         }
     }
 
@@ -176,6 +186,13 @@ mod tests {
             .count()
     }
 
+    fn assert_cell_open(kind: Option<&CellKind>) {
+        match kind {
+            Some(CellKind::Open(_)) => assert!(true),
+            _ => assert!(false, "Expected Open CellKind variant"),
+        }
+    }
+
     #[test]
     fn basic_board_init() {
         let result = Minesweeper::new(4, 3, 0);
@@ -258,11 +275,48 @@ mod tests {
     }
 
     #[test]
-    fn flagging_cell() {
+    fn flagging_cell_closed() {
         let mut game = Minesweeper::new(4, 3, 3);
         let pos = Pos { row: 0, col: 0 };
+        assert_eq!(*game.board.get(pos).unwrap(), CellKind::Closed);
         game.flag_cell(pos);
         assert_eq!(*game.board.get(pos).unwrap(), CellKind::Flagged);
+    }
+
+    #[test]
+    fn flag_cell_open() {
+        let mut game = Minesweeper::new(4, 3, 3);
+        let pos = Pos { row: 0, col: 0 };
+        game.open_cell(pos);
+
+        assert_cell_open(game.board.get(pos));
+        game.flag_cell(pos);
+        assert_cell_open(game.board.get(pos));
+    }
+
+    #[test]
+    fn flag_cell_flagged() {
+        let mut game = Minesweeper::new(4, 3, 3);
+        let pos = Pos { row: 0, col: 0 };
+
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
+        game.flag_cell(pos);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Flagged);
+        game.flag_cell(pos);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Closed);
+    }
+
+    #[test]
+    fn flag_cell_mine() {
+        let mut game = Minesweeper::new(4, 3, 3);
+        let pos = Pos { row: 0, col: 0 };
+        _ = game.board.set(pos, CellKind::Mine);
+
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Mine);
+        game.flag_cell(pos);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Flagged);
+        game.flag_cell(pos);
+        assert_eq!(game.board.get(pos).unwrap(), &CellKind::Mine);
     }
 
     #[test]
@@ -320,11 +374,7 @@ mod tests {
 
         let pos = Pos { row: 0, col: 0 };
         game.open_cell(pos);
-        let &cell_kind = game.board.get(pos).unwrap();
-        match cell_kind {
-            CellKind::Open(_) => assert!(true),
-            _ => assert!(false, "Expected Open CellKind variant"),
-        }
+        assert_cell_open(game.board.get(pos));
 
         assert_eq!(game.state, GameState::Playing);
         assert_eq!(game.mine_count, 10);
