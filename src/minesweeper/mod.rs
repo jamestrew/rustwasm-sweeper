@@ -87,6 +87,10 @@ impl Minesweeper {
     }
 
     pub fn flag_cell(&mut self, pos: Pos) {
+        if self.state == GameState::Win || self.state == GameState::Lose {
+            return;
+        }
+
         match self.board.get(pos) {
             Some(CellKind::Closed { flagged }) => {
                 _ = self.board.set(pos, CellKind::Closed { flagged: !flagged })
