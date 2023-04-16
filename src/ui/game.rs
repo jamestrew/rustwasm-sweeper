@@ -37,7 +37,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
 
         <div class="Board" style=style()>
             <For
-                each=move || board_pos()
+                each=board_pos
                 key=|&pos| pos
                 view=move |cx, pos| {
                     view! { cx,

@@ -116,7 +116,7 @@ impl Minesweeper {
             match kind {
                 CellKind::Mine { flagged: false } => self.state = GameState::Lose,
                 CellKind::Closed { .. } => self.check_neighbor(pos),
-                _ => return,
+                _ => (),
             }
         }
     }

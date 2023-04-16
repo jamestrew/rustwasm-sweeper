@@ -9,15 +9,17 @@ pub enum CellKind {
 
 impl CellKind {
     pub fn new_closed() -> Self {
-        CellKind::Closed {flagged: false}
+        CellKind::Closed { flagged: false }
     }
 
     pub fn new_mine() -> Self {
-        CellKind::Mine {flagged: false}
+        CellKind::Mine { flagged: false }
     }
 
     pub fn new_open(count: u8) -> Self {
-        CellKind::Open { neighbor_mines: count }
+        CellKind::Open {
+            neighbor_mines: count,
+        }
     }
 
     pub fn is_flagged(&self) -> bool {
@@ -29,25 +31,16 @@ impl CellKind {
     }
 
     pub fn is_mine(&self) -> bool {
-        match self {
-            Self::Mine { .. } => true,
-            _ => false,
-        }
+        matches!(self, Self::Mine { .. })
     }
 
     pub fn is_open(&self) -> bool {
-        match self {
-            Self::Open { .. } => true,
-            _ => false,
-        }
+        matches!(self, Self::Open { .. })
     }
 
     // TODO: maybe we can have some macro fun with these is_* methods
     pub fn is_closed(&self) -> bool {
-        match self {
-            Self::Closed { .. } => true,
-            _ => false,
-        }
+        matches!(self, Self::Closed { .. })
     }
 
     pub fn as_char(&self, state: GameState) -> char {

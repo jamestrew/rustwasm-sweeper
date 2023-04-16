@@ -65,10 +65,10 @@ impl Board {
     pub fn set(&mut self, pos: Pos, kind: CellKind) -> Result<(), BoardError> {
         self.b
             .get_mut(pos.row as usize)
-            .ok_or_else(|| BoardError::SetCellError { pos, kind })
+            .ok_or(BoardError::SetCellError { pos, kind })
             .and_then(|row| {
                 row.get_mut(pos.col as usize)
-                    .ok_or_else(|| BoardError::SetCellError { pos, kind })
+                    .ok_or(BoardError::SetCellError { pos, kind })
             })
             .map(|c| *c = kind)
     }
@@ -113,10 +113,9 @@ mod tests {
 
     fn assert_board(actual: Board, expect: Vec<Vec<CellKind>>) {
         assert_eq!(expect.len(), actual.height as usize);
-        for i in 0..expect.len() {
-            assert_eq!(expect[i].len(), actual.width as usize);
-            for j in 0..expect[i].len() {
-                assert_eq!(expect[i][j], actual.b[i][j]);
+        for (i, row) in expect.iter().enumerate() {
+            for (j, cellkind) in row.iter().enumerate() {
+                assert_eq!(cellkind, &actual.b[i][j]);
             }
         }
     }
@@ -188,7 +187,7 @@ mod tests {
         let mut b = Board::new(4, 3);
         let pos = Pos { row: 0, col: 0 };
         assert!(b.get(pos).unwrap().is_closed());
-        assert_eq!(b.set(pos, CellKind::new_mine()).unwrap(), ());
+        assert!(b.set(pos, CellKind::new_mine()).is_ok());
         assert!(b.get(pos).unwrap().is_mine());
     }
 
