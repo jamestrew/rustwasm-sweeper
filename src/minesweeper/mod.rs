@@ -106,6 +106,9 @@ impl Minesweeper {
         }
 
         if let Some(kind) = self.board.get(pos) {
+            if kind.is_flagged() {
+                return;
+            }
             match kind {
                 CellKind::Mine { flagged: false } => self.state = GameState::Lose,
                 CellKind::Closed { .. } => self.check_neighbor(pos),
@@ -124,13 +127,11 @@ impl Minesweeper {
                     .map_or(false, |&kind| kind.is_mine())
             })
             .count();
-        _ = self.board.set(
-            pos,
-            CellKind::Open {
-                neighbor_mines: neighboring_mines as u8,
-            },
-        );
+        _ = self
+            .board
+            .set(pos, CellKind::new_open(neighboring_mines as u8));
         self.open_empty_neighbors(pos, neighboring_mines);
+        self.check_win_condition();
     }
 
     fn open_empty_neighbors(&mut self, pos: Pos, neighboring_mines: usize) {
@@ -140,6 +141,12 @@ impl Minesweeper {
         self.board
             .iter_neighbors(pos)
             .for_each(|new_pos| self.open_cell(new_pos));
+    }
+
+    fn check_win_condition(&mut self) {
+        if self.board.iter().flatten().filter(|kind| kind.is_closed()).count() == 0 {
+            self.state = GameState::Win;
+        }
     }
 
     pub fn iter_board(&self) -> impl Iterator<Item = Cell> + '_ {
@@ -329,7 +336,7 @@ mod tests {
 
         let pos = Pos { row: 2, col: 1 };
         game.open_cell(pos);
-        assert_eq!(game.state, GameState::Playing);
+        assert_eq!(game.state, GameState::Win);
         assert_eq!(
             game.board.get(pos).unwrap(),
             &CellKind::Open { neighbor_mines: 4 }
@@ -391,8 +398,26 @@ mod tests {
     }
 
     #[test]
-    fn open_cell_flagged_mine() {}
+    fn open_cell_flagged_mine() {
+        let mut game = Minesweeper::new(9, 9, 10);
+
+        let pos = Pos { row: 0, col: 0 };
+        game.flag_cell(pos);
+        assert!(game.board.get(pos).unwrap().is_flagged());
+        game.open_cell(pos);
+        assert!(
+            game.board.get(pos).unwrap().is_closed(),
+            "{:?}",
+            game.board.get(pos)
+        );
+    }
 
     #[test]
-    fn open_cell_to_win() {}
+    fn open_cell_to_win() {
+        let mut game = Minesweeper::from_matrix(vec![vec![1, 1, 0]]);
+
+        assert_eq!(game.state, GameState::Playing);
+        game.open_cell(Pos { row: 0, col: 2 });
+        assert_eq!(game.state, GameState::Win);
+    }
 }

@@ -16,6 +16,10 @@ impl CellKind {
         CellKind::Mine {flagged: false}
     }
 
+    pub fn new_open(count: u8) -> Self {
+        CellKind::Open { neighbor_mines: count }
+    }
+
     pub fn is_flagged(&self) -> bool {
         match self {
             CellKind::Open { .. } => false,
