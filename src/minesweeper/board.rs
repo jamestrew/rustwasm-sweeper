@@ -30,7 +30,7 @@ pub struct Board {
 impl Board {
     pub fn new(height: u8, width: u8) -> Self {
         let b = (0..height)
-            .map(|_| (0..width).map(|_| CellKind::Closed).collect())
+            .map(|_| (0..width).map(|_| CellKind::new_closed()).collect())
             .collect();
 
         Self { b, height, width }
@@ -45,9 +45,9 @@ impl Board {
                 row.into_iter()
                     .map(|val| {
                         if val == 0 {
-                            CellKind::Closed
+                            CellKind::new_closed()
                         } else {
-                            CellKind::Mine
+                            CellKind::new_mine()
                         }
                     })
                     .collect()
@@ -125,10 +125,26 @@ mod tests {
     fn init_board() {
         let b = Board::new(4, 3);
         let expect = vec![
-            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
-            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
-            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
-            vec![CellKind::Closed, CellKind::Closed, CellKind::Closed],
+            vec![
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+            ],
+            vec![
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+            ],
+            vec![
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+            ],
+            vec![
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+                CellKind::new_closed(),
+            ],
         ];
         assert_board(b, expect);
     }
@@ -138,16 +154,16 @@ mod tests {
         let board = vec![vec![0, 1, 0, 1], vec![1, 0, 1, 0]];
         let expect = vec![
             vec![
-                CellKind::Closed,
-                CellKind::Mine,
-                CellKind::Closed,
-                CellKind::Mine,
+                CellKind::new_closed(),
+                CellKind::new_mine(),
+                CellKind::new_closed(),
+                CellKind::new_mine(),
             ],
             vec![
-                CellKind::Mine,
-                CellKind::Closed,
-                CellKind::Mine,
-                CellKind::Closed,
+                CellKind::new_mine(),
+                CellKind::new_closed(),
+                CellKind::new_mine(),
+                CellKind::new_closed(),
             ],
         ];
         let b = Board::from_matrix(board);
@@ -157,8 +173,8 @@ mod tests {
     #[test]
     fn board_get_inbounds() {
         let mut b = Board::new(4, 3);
-        b.b[0][1] = CellKind::Mine;
-        assert_eq!(b.get(Pos { row: 0, col: 1 }).unwrap(), &CellKind::Mine);
+        b.b[0][1] = CellKind::new_mine();
+        assert!(b.get(Pos { row: 0, col: 1 }).unwrap().is_mine());
     }
 
     #[test]
@@ -171,22 +187,22 @@ mod tests {
     fn board_set_inbounds() {
         let mut b = Board::new(4, 3);
         let pos = Pos { row: 0, col: 0 };
-        assert_eq!(b.get(pos).unwrap(), &CellKind::Closed);
-        assert_eq!(b.set(pos, CellKind::Mine).unwrap(), ());
-        assert_eq!(b.get(pos).unwrap(), &CellKind::Mine);
+        assert!(b.get(pos).unwrap().is_closed());
+        assert_eq!(b.set(pos, CellKind::new_mine()).unwrap(), ());
+        assert!(b.get(pos).unwrap().is_mine());
     }
 
     #[test]
     fn board_set_outbounds() {
         let mut b = Board::new(4, 3);
         let pos = Pos { row: 100, col: 0 };
-        let res = b.set(pos, CellKind::Mine);
+        let res = b.set(pos, CellKind::new_mine());
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err(),
             BoardError::SetCellError {
                 pos,
-                kind: CellKind::Mine
+                kind: CellKind::new_mine()
             }
         );
     }
