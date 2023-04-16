@@ -1,5 +1,5 @@
 use crate::minesweeper::{Minesweeper, Pos};
-use leptos::{*, ev::MouseEvent};
+use leptos::{ev::MouseEvent, *};
 use leptos_meta::{Title, TitleProps};
 
 const CELL_SIZE: usize = 30;
@@ -14,7 +14,6 @@ pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
     let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
     provide_context(cx, GameUpdater { set_game });
-
 
     let style = move || {
         game.with(|g| {
@@ -59,19 +58,16 @@ pub fn CellComp(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl Into
 
         if button_num == 0 {
             set_game.update(|game| game.open_cell(pos));
-            log!("opening - Cell ({},{}) {} {}", cell().pos.row, cell().pos.col, cell().icon, cell().class);
         } else if button_num == 2 {
             set_game.update(|game| game.flag_cell(pos));
-            log!("flagging - Cell ({},{}) {} {}", cell().pos.row, cell().pos.col, cell().icon, cell().class);
         }
     };
-
 
     let class = move || format!("Cell {}", cell().class);
     let style = format!(
         "grid-column-start: {}; grid-row-start: {};",
         pos.col + 1,
-        pos.row + 1,
+        pos.row + 1
     );
 
     view! { cx,
