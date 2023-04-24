@@ -44,7 +44,7 @@ pub fn OptionsPanel(cx: Scope) -> impl IntoView {
                                             name="mode"
                                             prop:value={opt.difficulty}
                                             prop:checked={move || setting.with(|&diff| diff.difficulty == opt.difficulty)}
-                                            on:change={move |ev| mode_select(ev, opt)}
+                                            on:change=move |ev| mode_select(ev, opt)
                                         />
                                     </td>
                                     <td>{opt.difficulty.to_string()}</td>
