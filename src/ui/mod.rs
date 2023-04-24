@@ -1,5 +1,5 @@
 mod game;
-mod options;
+mod settings;
 mod utils;
 
 use leptos::*;

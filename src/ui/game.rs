@@ -3,7 +3,7 @@ use crate::ui::utils::GameUpdater;
 use leptos::{ev::MouseEvent, *};
 use leptos_meta::{Title, TitleProps};
 
-use crate::ui::options::*;
+use crate::ui::settings::*;
 
 const CELL_SIZE: usize = 30;
 
@@ -45,7 +45,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
                     }
                 />
             </div>
-            <OptionsPanel />
+            <SettingsPanel />
         </div>
     }
 }

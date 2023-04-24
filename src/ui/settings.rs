@@ -3,9 +3,9 @@ use crate::ui::utils::GameUpdater;
 use leptos::*;
 
 #[component]
-pub fn OptionsPanel(cx: Scope) -> impl IntoView {
+pub fn SettingsPanel(cx: Scope) -> impl IntoView {
     let GameUpdater { set_game } = use_context(cx).unwrap();
-    let (setting, set_setting) = create_signal(cx, OPTIONS[0]);
+    let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
     let (custom_setting, set_custom_setting) = create_signal(cx, CUSTOM);
 
     let mode_select = move |ev, setting| {
@@ -23,6 +23,7 @@ pub fn OptionsPanel(cx: Scope) -> impl IntoView {
                 set_custom_setting.update(|setting| setting.mine_count = num)
             }
         }
+        set_setting(custom_setting.get());
     };
 
     let new_game = move |_| {
@@ -36,8 +37,8 @@ pub fn OptionsPanel(cx: Scope) -> impl IntoView {
 
     view! { cx,
         <>
-            <div class="Options">
-                <table id="option-table">
+            <div class="Settings">
+                <table id="settings-table">
                   <thead>
                     <tr>
                       <th></th>
@@ -49,7 +50,7 @@ pub fn OptionsPanel(cx: Scope) -> impl IntoView {
                   </thead>
                   <tbody>
                     <For
-                        each=move || OPTIONS
+                        each=move || SETTINGS
                         key=|&opt| opt.difficulty.to_string()
                         view=move |cx, opt| {
                             view!{ cx,
@@ -156,7 +157,7 @@ impl IntoAttribute for Difficulty {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Setting {
     pub difficulty: Difficulty,
     pub width: u8,
@@ -164,7 +165,7 @@ struct Setting {
     pub mine_count: usize,
 }
 
-const OPTIONS: [Setting; 3] = [
+const SETTINGS: [Setting; 3] = [
     Setting {
         difficulty: Difficulty::Beginner,
         width: 9,
