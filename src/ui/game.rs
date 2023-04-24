@@ -1,5 +1,5 @@
 use crate::minesweeper::{Minesweeper, Pos};
-use crate::ui::utils::GameUpdater;
+use crate::ui::shared::GameUpdater;
 use leptos::{ev::MouseEvent, *};
 use leptos_meta::{Title, TitleProps};
 

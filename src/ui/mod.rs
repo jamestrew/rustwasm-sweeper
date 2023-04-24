@@ -1,6 +1,6 @@
 mod game;
 mod settings;
-mod utils;
+mod shared;
 
 use leptos::*;
 use leptos_meta::*;

@@ -1,5 +1,5 @@
 use crate::minesweeper::Minesweeper;
-use crate::ui::utils::GameUpdater;
+use crate::ui::shared::GameUpdater;
 use leptos::*;
 
 #[component]
