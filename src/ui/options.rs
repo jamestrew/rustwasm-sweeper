@@ -5,7 +5,8 @@ use leptos::*;
 #[component]
 pub fn OptionsPanel(cx: Scope) -> impl IntoView {
     let GameUpdater { set_game } = use_context(cx).unwrap();
-    let (setting, set_setting) = create_signal(cx, &OPTIONS[0]);
+    let (setting, set_setting) = create_signal(cx, OPTIONS[0]);
+    let (custom_setting, set_custom_setting) = create_signal(cx, CUSTOM);
 
     let mode_select = move |ev, setting| {
         if event_target_checked(&ev) {
@@ -13,9 +14,24 @@ pub fn OptionsPanel(cx: Scope) -> impl IntoView {
         }
     };
 
+    let update_custom_field = move |ev, field| {
+        let num: usize = event_target_value(&ev).parse().unwrap();
+        match field {
+            SettingField::Width => set_custom_setting.update(|setting| setting.width = num as u8),
+            SettingField::Height => set_custom_setting.update(|setting| setting.height = num as u8),
+            SettingField::MineCount => {
+                set_custom_setting.update(|setting| setting.mine_count = num)
+            }
+        }
+    };
+
     let new_game = move |_| {
         let setting = setting.get();
-        set_game(Minesweeper::new(setting.height, setting.width, setting.mine_count));
+        set_game(Minesweeper::new(
+            setting.height,
+            setting.width,
+            setting.mine_count,
+        ));
     };
 
     view! { cx,
@@ -55,12 +71,53 @@ pub fn OptionsPanel(cx: Scope) -> impl IntoView {
                             }
                         }
                     />
+                    <tr>
+                        <td>
+                            <input
+                                type="radio"
+                                name="mode"
+                                prop:value={CUSTOM.difficulty}
+                                on:change=move |ev| mode_select(ev, custom_setting.get())
+                            />
+                        </td>
+                        <td>{CUSTOM.difficulty.to_string()}</td>
+                        <td>
+                            <input
+                                type="number"
+                                class="custom-input"
+                                prop:value={custom_setting.with(|setting| setting.width)}
+                                on:change=move |ev| update_custom_field(ev, SettingField::Width)
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                class="custom-input"
+                                prop:value={custom_setting.with(|setting| setting.height)}
+                                on:change=move |ev| update_custom_field(ev, SettingField::Height)
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                class="custom-input"
+                                prop:value={custom_setting.with(|setting| setting.mine_count)}
+                                on:change=move |ev| update_custom_field(ev, SettingField::MineCount)
+                            />
+                        </td>
+                    </tr>
                   </tbody>
                 </table>
             </div>
             <button on:click=new_game>{"New Game"}</button>
         </>
     }
+}
+
+enum SettingField {
+    Width,
+    Height,
+    MineCount,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -107,7 +164,7 @@ struct Setting {
     pub mine_count: usize,
 }
 
-const OPTIONS: &[Setting] = &[
+const OPTIONS: [Setting; 3] = [
     Setting {
         difficulty: Difficulty::Beginner,
         width: 9,
@@ -126,10 +183,11 @@ const OPTIONS: &[Setting] = &[
         height: 16,
         mine_count: 99,
     },
-    Setting {
-        difficulty: Difficulty::Custom,
-        width: 9,
-        height: 9,
-        mine_count: 10,
-    },
 ];
+
+const CUSTOM: Setting = Setting {
+    difficulty: Difficulty::Custom,
+    width: 9,
+    height: 9,
+    mine_count: 10,
+};
