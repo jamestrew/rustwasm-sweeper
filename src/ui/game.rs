@@ -1,13 +1,12 @@
 use crate::minesweeper::{Minesweeper, Pos};
+use crate::ui::utils::GameUpdater;
 use leptos::{ev::MouseEvent, *};
 use leptos_meta::{Title, TitleProps};
 
+use crate::ui::options::*;
+
 const CELL_SIZE: usize = 30;
 
-#[derive(Clone, Copy)]
-struct GameUpdater {
-    set_game: WriteSignal<Minesweeper>,
-}
 
 #[component]
 pub fn Game(cx: Scope) -> impl IntoView {
@@ -34,22 +33,25 @@ pub fn Game(cx: Scope) -> impl IntoView {
     view! { cx,
         <Title text="Minesweeper" />
 
-        <div class="Board" style=style()>
-            <For
-                each=board_pos
-                key=|&pos| pos
-                view=move |cx, pos| {
-                    view! { cx,
-                        <CellComp game pos />
+        <div class="game">
+            <div class="Board" style=style()>
+                <For
+                    each=board_pos
+                    key=|&pos| pos
+                    view=move |cx, pos| {
+                        view! { cx,
+                            <Cell game pos />
+                        }
                     }
-                }
-            />
+                />
+            </div>
+            <OptionsPanel />
         </div>
     }
 }
 
 #[component]
-pub fn CellComp(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView {
+pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView {
     let cell = move || game.with(|g| g.get(pos));
     let GameUpdater { set_game } = use_context(cx).unwrap();
 

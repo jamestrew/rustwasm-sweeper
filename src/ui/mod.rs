@@ -1,4 +1,6 @@
 mod game;
+mod options;
+mod utils;
 
 use leptos::*;
 use leptos_meta::*;
