@@ -5,4 +5,3 @@ use leptos::WriteSignal;
 pub struct GameUpdater {
     pub set_game: WriteSignal<Minesweeper>,
 }
-

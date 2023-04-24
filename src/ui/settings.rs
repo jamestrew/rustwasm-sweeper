@@ -1,6 +1,29 @@
-use crate::minesweeper::Minesweeper;
+use crate::minesweeper::{Difficulty, Minesweeper, CUSTOM, SETTINGS};
 use crate::ui::shared::GameUpdater;
 use leptos::*;
+
+enum SettingField {
+    Width,
+    Height,
+    MineCount,
+}
+
+impl IntoProperty for Difficulty {
+    fn into_property(self, _: Scope) -> Property {
+        Property::Value(self.to_string().into())
+    }
+}
+
+impl IntoAttribute for Difficulty {
+    fn into_attribute(self, _: Scope) -> Attribute {
+        Attribute::String(self.to_string())
+    }
+
+    #[inline]
+    fn into_attribute_boxed(self: Box<Self>, cx: Scope) -> Attribute {
+        self.into_attribute(cx)
+    }
+}
 
 #[component]
 pub fn SettingsPanel(cx: Scope) -> impl IntoView {
@@ -114,81 +137,3 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
         </>
     }
 }
-
-enum SettingField {
-    Width,
-    Height,
-    MineCount,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Difficulty {
-    Beginner,
-    Intermediate,
-    Expert,
-    Custom,
-}
-
-impl std::fmt::Display for Difficulty {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Difficulty::Beginner => write!(f, "Beginner"),
-            Difficulty::Intermediate => write!(f, "Intermediate"),
-            Difficulty::Expert => write!(f, "Expert"),
-            Difficulty::Custom => write!(f, "Custom"),
-        }
-    }
-}
-
-impl IntoProperty for Difficulty {
-    fn into_property(self, _: Scope) -> Property {
-        Property::Value(self.to_string().into())
-    }
-}
-
-impl IntoAttribute for Difficulty {
-    fn into_attribute(self, _: Scope) -> Attribute {
-        Attribute::String(self.to_string())
-    }
-
-    #[inline]
-    fn into_attribute_boxed(self: Box<Self>, cx: Scope) -> Attribute {
-        self.into_attribute(cx)
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Setting {
-    pub difficulty: Difficulty,
-    pub width: u8,
-    pub height: u8,
-    pub mine_count: usize,
-}
-
-const SETTINGS: [Setting; 3] = [
-    Setting {
-        difficulty: Difficulty::Beginner,
-        width: 9,
-        height: 9,
-        mine_count: 10,
-    },
-    Setting {
-        difficulty: Difficulty::Intermediate,
-        width: 16,
-        height: 16,
-        mine_count: 40,
-    },
-    Setting {
-        difficulty: Difficulty::Expert,
-        width: 30,
-        height: 16,
-        mine_count: 99,
-    },
-];
-
-const CUSTOM: Setting = Setting {
-    difficulty: Difficulty::Custom,
-    width: 9,
-    height: 9,
-    mine_count: 10,
-};

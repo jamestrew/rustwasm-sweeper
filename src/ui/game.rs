@@ -7,7 +7,6 @@ use crate::ui::settings::*;
 
 const CELL_SIZE: usize = 30;
 
-
 #[component]
 pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));

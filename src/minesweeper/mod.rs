@@ -19,6 +19,61 @@ pub enum GameState {
     Lose,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Difficulty {
+    Beginner,
+    Intermediate,
+    Expert,
+    Custom,
+}
+
+impl std::fmt::Display for Difficulty {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Difficulty::Beginner => write!(f, "Beginner"),
+            Difficulty::Intermediate => write!(f, "Intermediate"),
+            Difficulty::Expert => write!(f, "Expert"),
+            Difficulty::Custom => write!(f, "Custom"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Setting {
+    pub difficulty: Difficulty,
+    pub width: u8,
+    pub height: u8,
+    pub mine_count: usize,
+}
+
+pub const SETTINGS: [Setting; 3] = [
+    Setting {
+        difficulty: Difficulty::Beginner,
+        width: 9,
+        height: 9,
+        mine_count: 10,
+    },
+    Setting {
+        difficulty: Difficulty::Intermediate,
+        width: 16,
+        height: 16,
+        mine_count: 40,
+    },
+    Setting {
+        difficulty: Difficulty::Expert,
+        width: 30,
+        height: 16,
+        mine_count: 99,
+    },
+];
+
+pub const CUSTOM: Setting = Setting {
+    difficulty: Difficulty::Custom,
+    width: 9,
+    height: 9,
+    mine_count: 10,
+};
+
 #[derive(Debug)]
 pub enum MinesweeperError {
     GameError,
@@ -148,7 +203,8 @@ impl Minesweeper {
     }
 
     fn check_win_condition(&mut self) {
-        if self.board.iter().flatten().filter(|kind| kind.is_closed()).count() == 0 {
+        let closed_cells = self.board.iter().flatten().filter(|kind| kind.is_closed());
+        if closed_cells.count() == 0 {
             self.state = GameState::Win;
         }
     }
