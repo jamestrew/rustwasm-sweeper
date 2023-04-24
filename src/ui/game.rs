@@ -34,7 +34,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
         <Title text="Minesweeper" />
 
         <div class="game">
-            <div class="Board" style=style()>
+            <div class="Board" style=move || style()>
                 <For
                     each=board_pos
                     key=|&pos| pos
