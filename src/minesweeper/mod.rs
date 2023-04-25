@@ -206,6 +206,33 @@ impl Minesweeper {
             .for_each(|new_pos| self.open_cell(new_pos));
     }
 
+    pub fn chorded_open(&mut self, pos: Pos) {
+        let pos_kind = self
+            .board
+            .get(pos)
+            .unwrap_or(&CellKind::Closed { flagged: true });
+        if !CellKind::is_open(pos_kind) {
+            return;
+        }
+
+        let neighbors_flagged = self
+            .board
+            .iter_neighbors(pos)
+            .filter(|&pos| self.board.get(pos).map_or(false, |&kind| kind.is_flagged()))
+            .count() as u8;
+
+        if let CellKind::Open { neighbor_mines: x } = *pos_kind {
+            if x == neighbors_flagged {
+                let closed_neighbors: Vec<_> = self.board
+                    .iter_neighbors(pos)
+                    .filter(|&pos| self.board.get(pos).map_or(false, |&kind| kind.is_closed()))
+                    .collect();
+
+                closed_neighbors.iter().for_each(|&pos| self.open_cell(pos));
+            }
+        }
+    }
+
     fn check_win_condition(&mut self) {
         let closed_cells = self.board.iter().flatten().filter(|kind| kind.is_closed());
         if closed_cells.count() == 0 {

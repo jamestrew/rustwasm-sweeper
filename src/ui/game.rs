@@ -51,17 +51,30 @@ pub fn Game(cx: Scope) -> impl IntoView {
 
 #[component]
 pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView {
-    let cell = move || game.with(|g| g.get(pos));
+    let (mouse_down, set_mouse_down) = create_signal::<Option<i16>>(cx, None);
     let GameUpdater { set_game } = use_context(cx).unwrap();
+    let cell = move || game.with(|g| g.get(pos));
 
-    let click = move |e: MouseEvent| {
-        let button_num = e.button();
+    let handle_mouse_down = move |e: MouseEvent| {
+        set_mouse_down(Some(e.button()));
+    };
 
-        if button_num == 0 {
-            set_game.update(|game| game.open_cell(pos));
-        } else if button_num == 2 {
-            set_game.update(|game| game.flag_cell(pos));
+    let send_mouse_action = move |e: MouseEvent| {
+        let prev_mouse_button = mouse_down();
+        if let Some(button) = prev_mouse_button {
+            if button == e.button() {
+                match button {
+                    0 => set_game.update(|game| game.open_cell(pos)),
+                    2 => set_game.update(|game| game.flag_cell(pos)),
+                    _ => (),
+                }
+                return;
+            }
+        } else {
+            return;
         }
+
+        set_game.update(|game| game.chorded_open(pos));
     };
 
     let class = move || format!("Cell {}", cell().class);
@@ -75,7 +88,8 @@ pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView
         <div
             class=class
             style=style
-            on:mousedown=click
+            on:mousedown=handle_mouse_down
+            on:mouseup=send_mouse_action
             on:contextmenu=move |e| e.prevent_default()
         >
             {move || cell().icon}
