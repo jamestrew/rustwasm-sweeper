@@ -104,6 +104,10 @@ impl Minesweeper {
         }
     }
 
+    pub fn from_setting(setting: Setting) -> Self {
+        Self::new(setting.height, setting.width, setting.mine_count)
+    }
+
     pub fn from_matrix(matrix: Vec<Vec<i32>>) -> Self {
         let board = Board::from_matrix(matrix);
         let mine_count = board

@@ -51,11 +51,7 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
 
     let new_game = move |_| {
         let setting = setting.get();
-        set_game(Minesweeper::new(
-            setting.height,
-            setting.width,
-            setting.mine_count,
-        ));
+        set_game(Minesweeper::from_setting(setting));
     };
 
     view! { cx,
