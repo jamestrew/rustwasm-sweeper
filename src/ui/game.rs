@@ -1,4 +1,4 @@
-use crate::minesweeper::{Minesweeper, Pos};
+use crate::minesweeper::{GameState, Minesweeper, Pos};
 use crate::ui::shared::GameUpdater;
 use leptos::{ev::MouseEvent, *};
 use leptos_meta::{Title, TitleProps};
@@ -25,7 +25,11 @@ pub fn Game(cx: Scope) -> impl IntoView {
 
     create_effect(cx, move |_| {
         game.with(|game_state| {
-            log!("Game:\n{}", game_state);
+            match game_state.state {
+                GameState::Win => log!("WINNER!!!"),
+                GameState::Lose => log!("YOU LOSE :("),
+                _ => (),
+            }
         });
     });
 
