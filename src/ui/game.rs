@@ -10,8 +10,15 @@ const CELL_SIZE: usize = 30;
 #[component]
 pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
+    let (chord_pos, set_chord_pos) = create_signal::<Option<Pos>>(cx, None);
     let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
-    provide_context(cx, GameUpdater { set_game });
+    provide_context(
+        cx,
+        GameUpdater {
+            set_game,
+            set_chord_pos,
+        },
+    );
 
     let style = move || {
         game.with(|g| {
@@ -24,12 +31,10 @@ pub fn Game(cx: Scope) -> impl IntoView {
     };
 
     create_effect(cx, move |_| {
-        game.with(|game_state| {
-            match game_state.state {
-                GameState::Win => log!("WINNER!!!"),
-                GameState::Lose => log!("YOU LOSE :("),
-                _ => (),
-            }
+        game.with(|game_state| match game_state.state {
+            GameState::Win => log!("WINNER!!!"),
+            GameState::Lose => log!("YOU LOSE :("),
+            _ => (),
         });
     });
 
@@ -40,10 +45,10 @@ pub fn Game(cx: Scope) -> impl IntoView {
             <div class="Board" style=style>
                 <For
                     each=board_pos
-                    key=|&pos| pos
+                    key=|&pos| pos.key()
                     view=move |cx, pos| {
                         view! { cx,
-                            <Cell game pos />
+                            <Cell game pos chord_pos/>
                         }
                     }
                 />
@@ -54,16 +59,30 @@ pub fn Game(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView {
+pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos, chord_pos: ReadSignal<Option<Pos>>) -> impl IntoView {
     let (mouse_down, set_mouse_down) = create_signal::<Option<i16>>(cx, None);
-    let GameUpdater { set_game } = use_context(cx).unwrap();
+    let GameUpdater {
+        set_game,
+        set_chord_pos,
+    } = use_context(cx).unwrap();
     let cell = move || game.with(|g| g.get(pos));
+    let active = move || {
+        match chord_pos.get() {
+            None => false,
+            Some(p) => game.with(|g| g.board.iter_neighbors(p).any(|neighbor| neighbor == pos)),
+        }
+    };
 
     let handle_mouse_down = move |e: MouseEvent| {
-        set_mouse_down(Some(e.button()));
+        let button = e.button();
+        set_mouse_down(Some(button));
+        if button == 2 {
+            set_chord_pos(Some(pos));
+        }
     };
 
     let send_mouse_action = move |e: MouseEvent| {
+        set_chord_pos(None);
         let prev_mouse_button = mouse_down();
         if let Some(button) = prev_mouse_button {
             if button == e.button() {
@@ -81,7 +100,13 @@ pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos) -> impl IntoView
         set_game.update(|game| game.chorded_open(pos));
     };
 
-    let class = move || format!("Cell {}", cell().class);
+    let class = move || {
+        format!(
+            "Cell {} {}",
+            cell().class,
+            if active() { "active" } else { "" }
+        )
+    };
     let style = format!(
         "grid-column-start: {}; grid-row-start: {};",
         pos.col + 1,

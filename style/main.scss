@@ -102,6 +102,9 @@ body {
       color: #757575;
     }
   }
+  &.active {
+    background: $open-bg;
+  }
 }
 
 .Scoreboard {

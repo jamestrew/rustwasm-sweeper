@@ -27,7 +27,7 @@ impl IntoAttribute for Difficulty {
 
 #[component]
 pub fn SettingsPanel(cx: Scope) -> impl IntoView {
-    let GameUpdater { set_game } = use_context(cx).unwrap();
+    let GameUpdater { set_game, .. } = use_context(cx).unwrap();
     let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
     let (custom_setting, set_custom_setting) = create_signal(cx, CUSTOM);
 
