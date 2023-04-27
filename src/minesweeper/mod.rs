@@ -257,15 +257,14 @@ impl Minesweeper {
         Cell::new(pos, *kind, self.state)
     }
 
-    pub fn unflagged_closed_neighbors(&self, pos: Pos) -> Vec<Pos> {
-        self.board
+    pub fn chorded_cells(&self, pos: Pos) -> Vec<Pos> {
+        let mut cells = self
+            .board
             .iter_neighbors(pos)
-            .filter(|&p| {
-                self.board
-                    .get(p)
-                    .map_or(false, |&cell| !cell.is_flagged() && cell.is_closed())
-            })
-            .collect()
+            .filter(|&p| self.board.get(p).map_or(false, |&cell| !cell.is_flagged()))
+            .collect::<Vec<_>>();
+        cells.push(pos);
+        cells
     }
 }
 

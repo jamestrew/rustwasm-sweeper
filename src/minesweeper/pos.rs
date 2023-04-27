@@ -4,7 +4,6 @@ pub struct Pos {
     pub col: u8,
 }
 
-
 impl Pos {
     pub fn key(&self) -> String {
         format!("{}{}", self.row, self.col)
