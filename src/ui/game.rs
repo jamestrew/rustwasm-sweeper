@@ -59,45 +59,39 @@ pub fn Game(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos, chord_pos: ReadSignal<Option<Pos>>) -> impl IntoView {
-    let (mouse_down, set_mouse_down) = create_signal::<Option<i16>>(cx, None);
+pub fn Cell(
+    cx: Scope,
+    game: ReadSignal<Minesweeper>,
+    pos: Pos,
+    chord_pos: ReadSignal<Option<Pos>>,
+) -> impl IntoView {
+    let (mouse_down, set_mouse_down) = create_signal::<MouseButtons>(cx, MouseButtons::None);
     let GameUpdater {
         set_game,
         set_chord_pos,
     } = use_context(cx).unwrap();
     let cell = move || game.with(|g| g.get(pos));
-    let active = move || {
-        match chord_pos.get() {
-            None => false,
-            Some(p) => game.with(|g| g.board.iter_neighbors(p).any(|neighbor| neighbor == pos)),
-        }
+    let active = move || match chord_pos.get() {
+        None => false,
+        Some(p) => game.with(|g| g.board.iter_neighbors(p).any(|neighbor| neighbor == pos)),
     };
 
     let handle_mouse_down = move |e: MouseEvent| {
-        let button = e.button();
-        set_mouse_down(Some(button));
-        if button == 2 {
+        let buttons = MouseButtons::from_buttons(e.buttons());
+        set_mouse_down(buttons);
+        if buttons == MouseButtons::LRClick {
             set_chord_pos(Some(pos));
         }
     };
 
-    let send_mouse_action = move |e: MouseEvent| {
+    let send_mouse_action = move |_| {
+        match mouse_down.get() {
+            MouseButtons::LClick => set_game.update(|game| game.open_cell(pos)),
+            MouseButtons::RClick => set_game.update(|game| game.flag_cell(pos)),
+            MouseButtons::LRClick => set_game.update(|game| game.chorded_open(pos)),
+            _ => (),
+        };
         set_chord_pos(None);
-        let prev_mouse_button = mouse_down();
-        if let Some(button) = prev_mouse_button {
-            if button == e.button() {
-                match button {
-                    0 => set_game.update(|game| game.open_cell(pos)),
-                    2 => set_game.update(|game| game.flag_cell(pos)),
-                    _ => (),
-                }
-                return;
-            }
-        } else {
-            return;
-        }
-
-        set_game.update(|game| game.chorded_open(pos));
     };
 
     let class = move || {
@@ -123,5 +117,26 @@ pub fn Cell(cx: Scope, game: ReadSignal<Minesweeper>, pos: Pos, chord_pos: ReadS
         >
             {move || cell().icon}
         </div>
+    }
+}
+
+#[derive(PartialEq, Copy, Clone)]
+enum MouseButtons {
+    None,
+    LClick,
+    RClick,
+    LRClick,
+    Others(u16),
+}
+
+impl MouseButtons {
+    pub fn from_buttons(buttons: u16) -> Self {
+        match buttons {
+            0 => Self::None,
+            1 => Self::LClick,
+            2 => Self::RClick,
+            3 => Self::LRClick,
+            x => Self::Others(x),
+        }
     }
 }
