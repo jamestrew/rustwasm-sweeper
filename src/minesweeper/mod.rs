@@ -223,7 +223,8 @@ impl Minesweeper {
 
         if let CellKind::Open { neighbor_mines: x } = *pos_kind {
             if x == neighbors_flagged {
-                let closed_neighbors: Vec<_> = self.board
+                let closed_neighbors: Vec<_> = self
+                    .board
                     .iter_neighbors(pos)
                     .filter(|&pos| self.board.get(pos).map_or(false, |&kind| kind.is_closed()))
                     .collect();
@@ -248,12 +249,23 @@ impl Minesweeper {
         })
     }
 
-    pub fn get(&self, pos: Pos) -> Cell {
+    pub fn get_cell(&self, pos: Pos) -> Cell {
         let kind = self
             .board
             .get(pos)
             .unwrap_or(&CellKind::Closed { flagged: false });
         Cell::new(pos, *kind, self.state)
+    }
+
+    pub fn unflagged_closed_neighbors(&self, pos: Pos) -> Vec<Pos> {
+        self.board
+            .iter_neighbors(pos)
+            .filter(|&p| {
+                self.board
+                    .get(p)
+                    .map_or(false, |&cell| !cell.is_flagged() && cell.is_closed())
+            })
+            .collect()
     }
 }
 

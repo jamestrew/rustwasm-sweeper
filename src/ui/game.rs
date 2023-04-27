@@ -10,13 +10,14 @@ const CELL_SIZE: usize = 30;
 #[component]
 pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
-    let (chord_pos, set_chord_pos) = create_signal::<Option<Pos>>(cx, None);
+    let (active_pos, set_active_pos) = create_signal::<Vec<Pos>>(cx, Vec::new());
+
     let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
     provide_context(
         cx,
         GameUpdater {
             set_game,
-            set_chord_pos,
+            set_active_pos,
         },
     );
 
@@ -48,7 +49,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
                     key=|&pos| pos.key()
                     view=move |cx, pos| {
                         view! { cx,
-                            <Cell game pos chord_pos/>
+                            <Cell game pos active_pos/>
                         }
                     }
                 />
@@ -63,25 +64,28 @@ pub fn Cell(
     cx: Scope,
     game: ReadSignal<Minesweeper>,
     pos: Pos,
-    chord_pos: ReadSignal<Option<Pos>>,
+    active_pos: ReadSignal<Vec<Pos>>,
 ) -> impl IntoView {
     let (mouse_down, set_mouse_down) = create_signal::<MouseButtons>(cx, MouseButtons::None);
+
     let GameUpdater {
         set_game,
-        set_chord_pos,
+        set_active_pos,
     } = use_context(cx).unwrap();
-    let cell = move || game.with(|g| g.get(pos));
-    let active = move || match chord_pos.get() {
-        None => false,
-        Some(p) => game.with(|g| g.board.iter_neighbors(p).any(|neighbor| neighbor == pos)),
-    };
+
+    let cell = move || game.with(|g| g.get_cell(pos));
+    let active = move || active_pos.with(|ap| ap.contains(&pos) && !cell().kind.is_flagged());
 
     let handle_mouse_down = move |e: MouseEvent| {
         let buttons = MouseButtons::from_buttons(e.buttons());
         set_mouse_down(buttons);
-        if buttons == MouseButtons::LRClick {
-            set_chord_pos(Some(pos));
-        }
+        match buttons {
+            MouseButtons::LClick => set_active_pos(vec![pos]),
+            MouseButtons::LRClick => {
+                set_active_pos(game.with(|g| g.unflagged_closed_neighbors(pos)))
+            }
+            _ => (),
+        };
     };
 
     let send_mouse_action = move |_| {
@@ -91,7 +95,7 @@ pub fn Cell(
             MouseButtons::LRClick => set_game.update(|game| game.chorded_open(pos)),
             _ => (),
         };
-        set_chord_pos(None);
+        set_active_pos(Vec::new());
     };
 
     let class = move || {
