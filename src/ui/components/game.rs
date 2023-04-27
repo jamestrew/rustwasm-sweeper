@@ -1,0 +1,63 @@
+use crate::minesweeper::{GameState, Minesweeper, Pos};
+use leptos::*;
+use leptos_meta::{Title, TitleProps};
+
+use crate::ui::components::settings::*;
+use crate::ui::components::cell::*;
+
+use crate::ui::shared::{GameUpdater, MouseButtons, CELL_SIZE};
+
+#[component]
+pub fn Game(cx: Scope) -> impl IntoView {
+    let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
+    let (active_pos, set_active_pos) = create_signal::<Vec<Pos>>(cx, Vec::new());
+    let (mouse_down, set_mouse_down) = create_signal::<MouseButtons>(cx, MouseButtons::None);
+
+    let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
+    provide_context(cx, GameUpdater { set_game });
+
+    let style = move || {
+        game.with(|g| {
+            format!(
+                "height: {}px; width: {}px",
+                g.board.height as usize * CELL_SIZE,
+                g.board.width as usize * CELL_SIZE
+            )
+        })
+    };
+
+    create_effect(cx, move |_| {
+        game.with(|game_state| match game_state.state {
+            GameState::Win => log!("WINNER!!!"),
+            GameState::Lose => log!("YOU LOSE :("),
+            _ => (),
+        });
+    });
+
+    view! { cx,
+        <Title text="Minesweeper" />
+
+        <div class="game">
+            <div class="Board" style=style>
+                <For
+                    each=board_pos
+                    key=|&pos| pos.key()
+                    view=move |cx, pos| {
+                        view! { cx,
+                            <Cell
+                                game
+                                pos
+                                active_pos
+                                set_active_pos
+                                mouse_down
+                                set_mouse_down
+                            />
+                        }
+                    }
+                />
+            </div>
+            <SettingsPanel />
+        </div>
+    }
+}
+
