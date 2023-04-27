@@ -1,5 +1,5 @@
-use crate::minesweeper::{GameState, Minesweeper, Pos};
-use crate::ui::shared::{GameUpdater, MouseButtons, CELL_SIZE};
+use crate::minesweeper::{Minesweeper, Pos};
+use crate::ui::shared::{GameUpdater, MouseButtons};
 use leptos::{ev::MouseEvent, *};
 
 #[component]
