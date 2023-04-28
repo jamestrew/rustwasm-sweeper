@@ -1,9 +1,10 @@
-use crate::minesweeper::{GameState, Minesweeper, Pos, SETTINGS};
+use crate::minesweeper::{Minesweeper, Pos, SETTINGS};
 use leptos::*;
 use leptos_meta::{Title, TitleProps};
 
 use crate::ui::components::cell::*;
 use crate::ui::components::scoreboard::*;
+use crate::ui::components::settings::*;
 
 use crate::ui::shared::{GameUpdater, MouseButtons, CELL_SIZE};
 
@@ -35,18 +36,11 @@ pub fn Game(cx: Scope) -> impl IntoView {
         })
     };
 
-    create_effect(cx, move |_| {
-        game.with(|game_state| match game_state.state {
-            GameState::Win => log!("WINNER!!!"),
-            GameState::Lose => log!("YOU LOSE :("),
-            _ => (),
-        });
-    });
-
     view! { cx,
         <Title text="Minesweeper" />
 
         <div class="game">
+            <Scoreboard />
             <div class="Board" style=style>
                 <For
                     each=board_pos

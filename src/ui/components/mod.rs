@@ -1,3 +1,4 @@
-pub mod game;
-mod settings;
 mod cell;
+pub mod game;
+mod scoreboard;
+mod settings;

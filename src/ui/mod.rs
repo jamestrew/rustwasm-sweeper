@@ -1,5 +1,5 @@
-mod shared;
 mod components;
+mod shared;
 
 use leptos::*;
 use leptos_meta::*;
