@@ -1,18 +1,17 @@
-use crate::minesweeper::{Minesweeper, Pos};
+use crate::minesweeper::Pos;
 use crate::ui::shared::{GameUpdater, MouseButtons};
 use leptos::{ev::MouseEvent, *};
 
 #[component]
 pub fn Cell(
     cx: Scope,
-    game: ReadSignal<Minesweeper>,
     pos: Pos,
     active_pos: ReadSignal<Vec<Pos>>,
     set_active_pos: WriteSignal<Vec<Pos>>,
     mouse_down: ReadSignal<MouseButtons>,
     set_mouse_down: WriteSignal<MouseButtons>,
 ) -> impl IntoView {
-    let GameUpdater { set_game } = use_context(cx).unwrap();
+    let GameUpdater { game, set_game, .. } = use_context(cx).unwrap();
 
     let cell = move || game.with(|g| g.get_cell(pos));
     let active = move || active_pos.with(|ap| ap.contains(&pos) && !cell().kind.is_flagged());

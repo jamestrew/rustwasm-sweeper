@@ -27,8 +27,12 @@ impl IntoAttribute for Difficulty {
 
 #[component]
 pub fn SettingsPanel(cx: Scope) -> impl IntoView {
-    let GameUpdater { set_game } = use_context(cx).unwrap();
-    let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
+    let GameUpdater {
+        set_game,
+        setting,
+        set_setting,
+        ..
+    } = use_context(cx).unwrap();
     let (custom_setting, set_custom_setting) = create_signal(cx, CUSTOM);
 
     let mode_select = move |ev, setting| {
@@ -49,10 +53,7 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
         set_setting(custom_setting.get());
     };
 
-    let new_game = move |_| {
-        let setting = setting.get();
-        set_game(Minesweeper::from_setting(setting));
-    };
+    let new_game = move |_| set_game(Minesweeper::from_setting(setting.get()));
 
     view! { cx,
         <>

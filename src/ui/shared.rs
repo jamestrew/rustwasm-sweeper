@@ -1,9 +1,12 @@
-use crate::minesweeper::Minesweeper;
-use leptos::WriteSignal;
+use crate::minesweeper::{Minesweeper, Setting};
+use leptos::{ReadSignal, WriteSignal};
 
 #[derive(Clone, Copy)]
 pub struct GameUpdater {
+    pub game: ReadSignal<Minesweeper>,
     pub set_game: WriteSignal<Minesweeper>,
+    pub setting: ReadSignal<Setting>,
+    pub set_setting: WriteSignal<Setting>,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
