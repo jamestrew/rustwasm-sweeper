@@ -6,6 +6,6 @@ pub struct Pos {
 
 impl Pos {
     pub fn key(&self) -> String {
-        format!("{}{}", self.row, self.col)
+        format!("{}-{}", self.row, self.col)
     }
 }
