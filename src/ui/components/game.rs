@@ -1,4 +1,4 @@
-use crate::minesweeper::{Minesweeper, Pos, SETTINGS};
+use crate::minesweeper::{GameState, Minesweeper, Pos, SETTINGS};
 use leptos::*;
 use leptos_meta::{Title, TitleProps};
 
@@ -14,6 +14,9 @@ pub fn Game(cx: Scope) -> impl IntoView {
     let (active_pos, set_active_pos) = create_signal::<Vec<Pos>>(cx, Vec::new());
     let (mouse_down, set_mouse_down) = create_signal::<MouseButtons>(cx, MouseButtons::None);
     let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
+    let (time, set_time) = create_signal(cx, 0);
+
+    let game_state = store_value(cx, GameState::Unstarted);
 
     let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
     provide_context(
@@ -23,8 +26,39 @@ pub fn Game(cx: Scope) -> impl IntoView {
             set_game,
             setting,
             set_setting,
+            time,
+            set_time,
         },
     );
+
+    create_effect(cx, move |_| {
+        let state = game.with(|g| g.state);
+        if game_state() == state {
+            return;
+        }
+
+        game_state.update_value(|gs| *gs = state);
+        log!("create_effect runs {:?}", game_state());
+        if game_state() == GameState::Playing {
+            let interval = set_interval(
+                move || set_time.update(|time| *time += 1),
+                std::time::Duration::from_secs(1),
+            );
+            on_cleanup(cx, move || interval.unwrap().clear());
+        } else if game_state() == GameState::Unstarted {
+            set_time.set(0);
+        }
+    });
+
+    // create_effect(cx, move |_| {
+    //     let state = game.with(|g| g.state);
+    //     if game_state() != state {
+    //         game_state.update_value(|gs| {
+    //             *gs = state;
+    //         });
+    //         log!("updated state - {:?}", game_state());
+    //     }
+    // });
 
     let style = move || {
         game.with(|g| {

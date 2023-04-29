@@ -7,19 +7,24 @@ use crate::{
 
 #[component]
 pub fn Scoreboard(cx: Scope) -> impl IntoView {
+    let GameUpdater { game, time, .. } = use_context(cx).unwrap();
+
+    let flagged = move || {
+        game.with(|g| {
+            g.board
+                .iter()
+                .flatten()
+                .filter(|kind| kind.is_flagged())
+                .count()
+        })
+    };
+
     view! { cx,
         <div class="Scoreboard">
-            <Counter />
+            <div class="Counter">{ flagged }</div>
             <MinesweeperGuy />
-            <Counter />
+            <div class="Counter">{ time }</div>
         </div>
-    }
-}
-
-#[component]
-fn Counter(cx: Scope) -> impl IntoView {
-    view! { cx,
-        <div class="Counter">{}</div>
     }
 }
 

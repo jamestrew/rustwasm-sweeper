@@ -7,6 +7,8 @@ pub struct GameUpdater {
     pub set_game: WriteSignal<Minesweeper>,
     pub setting: ReadSignal<Setting>,
     pub set_setting: WriteSignal<Setting>,
+    pub time: ReadSignal<i32>,
+    pub set_time: WriteSignal<i32>,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
