@@ -42,12 +42,27 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
     };
 
     let update_custom_field = move |ev, field| {
-        let num: usize = event_target_value(&ev).parse().unwrap();
+        let setting = custom_setting.get();
         match field {
-            SettingField::Width => set_custom_setting.update(|setting| setting.width = num as u8),
-            SettingField::Height => set_custom_setting.update(|setting| setting.height = num as u8),
+            SettingField::Width => {
+                let num = event_target_value(&ev)
+                    .parse::<u8>()
+                    .unwrap_or(setting.width);
+                set_custom_setting.update(|setting| setting.width = num);
+            }
+            SettingField::Height => {
+                let num = event_target_value(&ev)
+                    .parse::<u8>()
+                    .unwrap_or(setting.height);
+                set_custom_setting.update(|setting| setting.height = num);
+            }
             SettingField::MineCount => {
-                set_custom_setting.update(|setting| setting.mine_count = num)
+                let num = event_target_value(&ev)
+                    .parse::<usize>()
+                    .unwrap_or(setting.mine_count);
+                if num < (setting.width * setting.height) as usize {
+                    set_custom_setting.update(|setting| setting.mine_count = num)
+                }
             }
         }
         set_setting(custom_setting.get());
@@ -107,7 +122,9 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
                             <input
                                 type="number"
                                 class="custom-input"
-                                prop:value={custom_setting.with(|setting| setting.width)}
+                                prop:min="1"
+                                prop:max="255"
+                                prop:value={move || custom_setting().width }
                                 on:change=move |ev| update_custom_field(ev, SettingField::Width)
                             />
                         </td>
@@ -115,7 +132,9 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
                             <input
                                 type="number"
                                 class="custom-input"
-                                prop:value={custom_setting.with(|setting| setting.height)}
+                                prop:min="1"
+                                prop:max="255"
+                                prop:value={move || custom_setting().height }
                                 on:change=move |ev| update_custom_field(ev, SettingField::Height)
                             />
                         </td>
@@ -123,7 +142,9 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
                             <input
                                 type="number"
                                 class="custom-input"
-                                prop:value={custom_setting.with(|setting| setting.mine_count)}
+                                prop:min="1"
+                                prop:max={move || ((custom_setting().width * custom_setting().height) - 1).to_string() }
+                                prop:value={move || custom_setting().mine_count }
                                 on:change=move |ev| update_custom_field(ev, SettingField::MineCount)
                             />
                         </td>
