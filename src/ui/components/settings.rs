@@ -98,6 +98,7 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
                                 type="radio"
                                 name="mode"
                                 prop:value={CUSTOM.difficulty}
+                                prop:checked={move || setting.with(|&diff| diff.difficulty == CUSTOM.difficulty)}
                                 on:change=move |ev| mode_select(ev, custom_setting.get())
                             />
                         </td>
