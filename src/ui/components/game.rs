@@ -1,6 +1,8 @@
 use crate::minesweeper::{GameState, Minesweeper, Pos, SETTINGS};
+use leptos::leptos_dom::helpers::IntervalHandle;
 use leptos::*;
 use leptos_meta::{Title, TitleProps};
+use wasm_bindgen::JsValue;
 
 use crate::ui::components::cell::*;
 use crate::ui::components::scoreboard::*;
@@ -16,7 +18,8 @@ pub fn Game(cx: Scope) -> impl IntoView {
     let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
     let (time, set_time) = create_signal(cx, 0);
 
-    let game_state = store_value(cx, GameState::Unstarted);
+    let game_state = store_value(cx, game.with(|g| g.state));
+    let interval = store_value::<Option<Result<IntervalHandle, JsValue>>>(cx, None);
 
     let board_pos = move || game.with(|g| g.board.iter_pos().collect::<Vec<Pos>>());
     provide_context(
@@ -40,25 +43,23 @@ pub fn Game(cx: Scope) -> impl IntoView {
         game_state.update_value(|gs| *gs = state);
         log!("create_effect runs {:?}", game_state());
         if game_state() == GameState::Playing {
-            let interval = set_interval(
+            let int = set_interval(
                 move || set_time.update(|time| *time += 1),
                 std::time::Duration::from_secs(1),
             );
-            on_cleanup(cx, move || interval.unwrap().clear());
-        } else if game_state() == GameState::Unstarted {
-            set_time.set(0);
+            interval.update_value(|i| *i = Some(int));
+        } else {
+            if interval().is_some() {
+                interval().unwrap().unwrap().clear();
+            }
+            if game_state() == GameState::Unstarted {
+                set_time.set(0);
+            }
         }
+        // else if game_state() == GameState::Unstarted {
+        //     set_time.set(0);
+        // }
     });
-
-    // create_effect(cx, move |_| {
-    //     let state = game.with(|g| g.state);
-    //     if game_state() != state {
-    //         game_state.update_value(|gs| {
-    //             *gs = state;
-    //         });
-    //         log!("updated state - {:?}", game_state());
-    //     }
-    // });
 
     let style = move || {
         game.with(|g| {
