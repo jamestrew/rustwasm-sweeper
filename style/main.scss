@@ -1,6 +1,6 @@
 $cell-border-size: 3;
 $cell-size: 30;
-$open-bg: #c0c0c0;
+$open-bg: #b4b4b4;
 
 body {
   font-family: sans-serif;
@@ -60,7 +60,7 @@ body {
 
 .Cell {
   text-align: center;
-  border: #{$cell-border-size}px solid grey;
+  border: #{$cell-border-size}px solid #595959;
   cursor: default;
   user-select: none;
   display: flex;
@@ -72,34 +72,34 @@ body {
 
   &.closed,
   &.flagged {
-    background: white;
+    background: #7e7e7e;
   }
   &.open,
   &.mine {
     background: $open-bg;
     &.open-1 {
-      color: #0000ff;
+      color: #0000aa;
     }
     &.open-2 {
-      color: #008200;
+      color: #005200;
     }
     &.open-3 {
-      color: #ff0000;
+      color: #aa0000;
     }
     &.open-4 {
-      color: #000084;
+      color: #000052;
     }
     &.open-5 {
-      color: #840000;
+      color: #520000;
     }
     &.open-6 {
-      color: #008284;
+      color: #005252;
     }
     &.open-7 {
-      color: #840084;
+      color: #000000;
     }
     &.open-8 {
-      color: #757575;
+      color: #525252;
     }
   }
   &.active {
