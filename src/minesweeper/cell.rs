@@ -52,7 +52,8 @@ impl CellKind {
             CellKind::Closed { .. } => 'x',
             CellKind::Mine { .. } => match state {
                 GameState::Lose => '!',
-                _ => 'x',
+                GameState::Win => '!',
+                GameState::Unstarted | GameState::Playing => 'x',
             },
         }
     }
