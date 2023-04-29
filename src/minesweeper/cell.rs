@@ -65,7 +65,8 @@ impl CellKind {
             CellKind::Closed { .. } => ("", "closed"),
             CellKind::Mine { .. } => match state {
                 GameState::Lose => ("💣", "mine"),
-                _ => ("", "closed"),
+                GameState::Win => ("🚩", "flagged"),
+                GameState::Playing | GameState::Unstarted => ("", "closed"),
             },
             CellKind::Open {
                 neighbor_mines: count,
