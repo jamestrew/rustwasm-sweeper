@@ -10,13 +10,15 @@ use crate::ui::components::settings::*;
 
 use crate::ui::shared::{GameUpdater, MouseButtons, CELL_SIZE};
 
+const TIMER_MAX: u16 = 999;
+
 #[component]
 pub fn Game(cx: Scope) -> impl IntoView {
     let (game, set_game) = create_signal(cx, Minesweeper::new(9, 9, 10));
     let (active_pos, set_active_pos) = create_signal::<Vec<Pos>>(cx, Vec::new());
     let (mouse_down, set_mouse_down) = create_signal::<MouseButtons>(cx, MouseButtons::None);
     let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
-    let (time, set_time) = create_signal(cx, 0);
+    let (time, set_time) = create_signal::<u16>(cx, 0);
 
     let game_state = store_value(cx, game.with(|g| g.state));
     let interval = store_value::<Option<Result<IntervalHandle, JsValue>>>(cx, None);
@@ -30,12 +32,14 @@ pub fn Game(cx: Scope) -> impl IntoView {
             setting,
             set_setting,
             time,
-            set_time,
         },
     );
 
     create_effect(cx, move |_| {
         let state = game.with(|g| g.state);
+        if game_state() == GameState::Playing && time() >= TIMER_MAX && interval().is_some() {
+            interval().unwrap().unwrap().clear();
+        }
         if game_state() == state {
             return;
         }
@@ -56,9 +60,6 @@ pub fn Game(cx: Scope) -> impl IntoView {
                 set_time.set(0);
             }
         }
-        // else if game_state() == GameState::Unstarted {
-        //     set_time.set(0);
-        // }
     });
 
     let style = move || {
