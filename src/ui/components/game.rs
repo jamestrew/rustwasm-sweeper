@@ -1,7 +1,7 @@
 use crate::minesweeper::{GameState, Minesweeper, Pos, SETTINGS};
 use leptos::leptos_dom::helpers::IntervalHandle;
 use leptos::*;
-use leptos_meta::{Title, TitleProps};
+use leptos_meta::Title;
 use wasm_bindgen::JsValue;
 
 use crate::ui::components::cell::*;
@@ -47,7 +47,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
         game_state.update_value(|gs| *gs = state);
         log!("create_effect runs {:?}", game_state());
         if game_state() == GameState::Playing {
-            let int = set_interval(
+            let int = set_interval_with_handle(
                 move || set_time.update(|time| *time += 1),
                 std::time::Duration::from_secs(1),
             );

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::minesweeper::{Difficulty, Minesweeper, CUSTOM, SETTINGS};
 use crate::ui::shared::GameUpdater;
 use leptos::*;
@@ -16,7 +18,7 @@ impl IntoProperty for Difficulty {
 
 impl IntoAttribute for Difficulty {
     fn into_attribute(self, _: Scope) -> Attribute {
-        Attribute::String(self.to_string())
+        Attribute::String(Cow::Owned(self.to_string()))
     }
 
     #[inline]
