@@ -17,6 +17,10 @@ pub fn Cell(
     let active = move || active_pos.with(|ap| ap.contains(&pos) && !cell().kind.is_flagged());
 
     let handle_mouse_down = move |e: MouseEvent| {
+        if game.with(|g| g.state.is_over()) {
+            e.prevent_default();
+        }
+
         let buttons = MouseButtons::from_buttons(e.buttons());
         set_mouse_down(buttons);
         match buttons {

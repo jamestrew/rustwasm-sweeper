@@ -19,6 +19,12 @@ pub enum GameState {
     Lose,
 }
 
+impl GameState {
+    pub fn is_over(self) -> bool {
+        matches!(self, GameState::Win | GameState::Lose)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Difficulty {
     Beginner,
