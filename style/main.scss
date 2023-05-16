@@ -1,6 +1,8 @@
 $cell-border-size: 3;
 $cell-size: 30;
 $open-bg: #b4b4b4;
+$closed-bg: #7e7e7e;
+$dark-bg: #595959;
 
 body {
   font-family: sans-serif;
@@ -60,7 +62,7 @@ body {
 
 .Cell {
   text-align: center;
-  border: #{$cell-border-size}px solid #595959;
+  border: #{$cell-border-size}px solid $dark-bg;
   cursor: default;
   user-select: none;
   display: flex;
@@ -72,7 +74,7 @@ body {
 
   &.closed,
   &.flagged {
-    background: #7e7e7e;
+    background: $closed-bg;
   }
   &.open,
   &.mine {
@@ -112,7 +114,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #c0c0c0;
+  background-color: $closed-bg;
   border: 3px solid black;
   margin-bottom: -3px;
   height: 50px;
@@ -135,7 +137,7 @@ body {
   // font-family: "digital-clock-font";
   width: 3em;
   height: 1em;
-  background-color: grey;
+  background-color: $dark-bg;
   padding-right: 1px;
   cursor: default;
   user-select: none;
