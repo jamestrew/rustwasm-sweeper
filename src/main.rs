@@ -18,6 +18,10 @@ async fn main() -> std::io::Result<()> {
 
     let db_url = dotenv!("DATABASE_URL");
     let pool = SqlitePool::connect(db_url).await.unwrap();
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("could not run SQLx migrations");
 
     register_server_functions();
 
