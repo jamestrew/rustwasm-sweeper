@@ -70,15 +70,7 @@ pub fn SettingsPanel(cx: Scope) -> impl IntoView {
         set_setting(custom_setting.get());
     };
 
-    let new_game = move |_| {
-        set_game(Minesweeper::from_setting(setting.get()));
-        spawn_local(async move {
-            let f = crate::handlers::testing(cx, "hello there".into())
-                .await
-                .unwrap_or("dammit".into());
-            log!("{}", f);
-        });
-    };
+    let new_game = move |_| set_game(Minesweeper::from_setting(setting.get()));
 
     view! { cx,
         <>

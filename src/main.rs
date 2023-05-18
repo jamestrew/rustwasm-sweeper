@@ -1,4 +1,3 @@
-mod handlers;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
@@ -6,10 +5,10 @@ async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
     use dotenvy_macro::dotenv;
-    use handlers::AppState;
     use leptos::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_start::ui::*;
+    use leptos_start::{AppState, register_server_functions};
     use sqlx::SqlitePool;
 
     let conf = get_configuration(None).await.unwrap();
@@ -20,7 +19,7 @@ async fn main() -> std::io::Result<()> {
     let db_url = dotenv!("DATABASE_URL");
     let pool = SqlitePool::connect(db_url).await.unwrap();
 
-    crate::handlers::register_server_functions();
+    register_server_functions();
 
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
