@@ -129,7 +129,6 @@ body {
 .Counter {
   display: flex;
   justify-content: right;
-  align-items: center;
   margin: 12px;
   color: red;
   font-size: 2em;
@@ -144,6 +143,7 @@ body {
 }
 
 .MinesweeperGuy {
+  height: 1em;
   padding: 12px;
   font-size: 2em;
   cursor: default;
