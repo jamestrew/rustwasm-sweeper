@@ -22,7 +22,7 @@ CREATE TABLE score (
     player_id INTEGER,
     difficulty_id INTEGER,
     time INTEGER,
-    inserted_at DATETIME,
+    inserted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (player_id) REFERENCES player (id),
     FOREIGN KEY (difficulty_id) REFERENCES difficulty (id)
 );
