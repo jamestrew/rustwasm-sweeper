@@ -18,7 +18,7 @@ leptos_actix = { version = "0.3", optional = true }
 leptos_router = { version = "0.3", default-features = false }
 log = "0.4"
 simple_logger = "4"
-wasm-bindgen = "0.2"
+wasm-bindgen = "0.2.86"
 getrandom = { version = "0.2", features = ["js"] }
 
 rand = "0.8.5"
@@ -30,6 +30,7 @@ dotenvy = "0.15.7"
 anyhow = "1.0.71"
 dotenvy_macro = "0.15.7"
 serde = { version = "1.0.163", features = ["derive"] }
+web-sys = { version = "0.3.63", features = ["HtmlDocument"] }
 
 [features]
 default = ["ssr"]

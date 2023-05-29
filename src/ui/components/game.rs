@@ -5,6 +5,7 @@ use leptos_meta::Title;
 use wasm_bindgen::JsValue;
 
 use crate::ui::components::cell::*;
+use crate::ui::components::leaderboards::*;
 use crate::ui::components::scoreboard::*;
 use crate::ui::components::settings::*;
 
@@ -45,7 +46,6 @@ pub fn Game(cx: Scope) -> impl IntoView {
         }
 
         game_state.update_value(|gs| *gs = state);
-        log!("create_effect runs {:?}", game_state());
         if game_state() == GameState::Playing {
             let int = set_interval_with_handle(
                 move || set_time.update(|time| *time += 1),
@@ -56,8 +56,12 @@ pub fn Game(cx: Scope) -> impl IntoView {
             if interval().is_some() {
                 interval().unwrap().unwrap().clear();
             }
-            if game_state() == GameState::Unstarted {
-                set_time.set(0);
+            match game_state() {
+                GameState::Unstarted => set_time.set(0),
+                GameState::Win => {
+                    set_playername();
+                }
+                _ => {}
             }
         }
     });
@@ -95,6 +99,22 @@ pub fn Game(cx: Scope) -> impl IntoView {
                 />
             </div>
             <SettingsPanel />
+            <Leaderboards />
         </div>
     }
+}
+
+fn set_playername() {
+    use wasm_bindgen::JsCast;
+    let name = window()
+        .prompt_with_message("Enter name to save score")
+        .unwrap()
+        .unwrap_or_default();
+
+    if name.is_empty() {
+        return;
+    }
+
+    let doc = document().unchecked_into::<web_sys::HtmlDocument>();
+    _ = doc.set_cookie(format!("playername={}; SameSite=None; Secure", name).as_str());
 }
