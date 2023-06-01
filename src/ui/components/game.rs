@@ -105,6 +105,11 @@ pub fn Game(cx: Scope) -> impl IntoView {
 }
 
 fn set_playername() {
+    let doc = document().unchecked_into::<web_sys::HtmlDocument>();
+    if is_playname_set(&doc.cookie().unwrap()) {
+        return;
+    }
+
     use wasm_bindgen::JsCast;
     let name = window()
         .prompt_with_message("Enter name to save score")
@@ -115,6 +120,15 @@ fn set_playername() {
         return;
     }
 
-    let doc = document().unchecked_into::<web_sys::HtmlDocument>();
     _ = doc.set_cookie(format!("playername={}; SameSite=None; Secure", name).as_str());
+}
+
+fn is_playname_set(cookie: &str) -> bool {
+    for item in cookie.split(";") {
+        let mut item = item.split("=");
+        if item.next() == Some("playername") {
+            return true;
+        }
+    }
+    return false;
 }
