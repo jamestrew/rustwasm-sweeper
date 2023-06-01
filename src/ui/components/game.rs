@@ -104,6 +104,74 @@ pub fn Game(cx: Scope) -> impl IntoView {
     }
 }
 
+#[server(SaveScore, "/api")]
+pub async fn save_player_score(cx: Scope, time: u16) -> Result<(), ServerFnError> {
+    use crate::AppState;
+    use actix_web::{web, HttpRequest};
+
+    let req = use_context::<HttpRequest>(cx);
+
+    let playername = req
+        .and_then(|req| {
+            req.cookie("playername")
+                .map(|cookie| cookie.value().to_owned())
+        })
+        .ok_or_else(|| ServerFnError::ServerError("playername cookie field not set".into()))?;
+
+    let app_state = use_context::<web::Data<AppState>>(cx).unwrap();
+    let db = &app_state.db_pool;
+
+    _ = sqlx::query!("INSERT OR IGNORE INTO player (name) VALUES (?)", playername)
+        .execute(db)
+        .await;
+    let player = sqlx::query!("SELECT id AS id FROM player WHERE name = ?", playername)
+        .fetch_one(db)
+        .await
+        .map_err(|msg| ServerFnError::ServerError(msg.to_string()))?;
+
+    if player.id.is_none() {
+        return Err(ServerFnError::ServerError(
+            "failed to fetch player id".into(),
+        ));
+    }
+
+    let scores = sqlx::query!(
+        "
+    SELECT COUNT(*) AS 'count'
+    FROM
+        score AS s
+        JOIN difficulty AS d ON s.difficulty_id = d.id
+    WHERE
+        s.time < ?
+        AND d.description = 'Beginner'
+    ORDER BY s.time
+    ",
+        time
+    )
+    .fetch_one(db)
+    .await
+    .map_err(|msg| ServerFnError::ServerError(msg.to_string()))?;
+
+    if scores.count >= 10 {
+        return Ok(());
+    }
+
+    _ = sqlx::query!(
+        "
+    INSERT INTO score (player_id, difficulty_id, time)
+    VALUES (?, ?, ?)
+    ",
+        player.id,
+        1,
+        time
+    )
+    .execute(db)
+    .await
+    .map_err(|msg| ServerFnError::ServerError(msg.to_string()))?;
+
+    Ok(())
+}
+
 fn set_playername() {
     let doc = document().unchecked_into::<web_sys::HtmlDocument>();
     if is_playname_set(&doc.cookie().unwrap()) {
