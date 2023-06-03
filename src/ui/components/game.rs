@@ -1,3 +1,4 @@
+use crate::minesweeper::Difficulty;
 use crate::minesweeper::{GameState, Minesweeper, Pos, SETTINGS};
 use leptos::leptos_dom::helpers::IntervalHandle;
 use leptos::*;
@@ -60,6 +61,14 @@ pub fn Game(cx: Scope) -> impl IntoView {
                 GameState::Unstarted => set_time.set(0),
                 GameState::Win => {
                     set_playername();
+                    spawn_local(async move {
+                        _ = save_player_score(
+                            cx,
+                            time.get_untracked(),
+                            setting.get_untracked().difficulty,
+                        )
+                        .await;
+                    });
                 }
                 _ => {}
             }
@@ -104,11 +113,27 @@ pub fn Game(cx: Scope) -> impl IntoView {
     }
 }
 
+impl Difficulty {
+    pub fn id(&self) -> u8 {
+        match self {
+            Difficulty::Beginner => 1,
+            Difficulty::Intermediate => 2,
+            Difficulty::Expert => 3,
+            Difficulty::Custom => 4,
+        }
+    }
+}
+
 #[server(SaveScore, "/api")]
-pub async fn save_player_score(cx: Scope, time: u16) -> Result<(), ServerFnError> {
+pub async fn save_player_score(
+    cx: Scope,
+    time: u16,
+    difficulty: Difficulty,
+) -> Result<(), ServerFnError> {
     use crate::AppState;
     use actix_web::{web, HttpRequest};
 
+    let difficulty_id = difficulty.id();
     let req = use_context::<HttpRequest>(cx);
 
     let playername = req
@@ -118,7 +143,8 @@ pub async fn save_player_score(cx: Scope, time: u16) -> Result<(), ServerFnError
         })
         .ok_or_else(|| ServerFnError::ServerError("playername cookie field not set".into()))?;
 
-    let app_state = use_context::<web::Data<AppState>>(cx).unwrap();
+    let app_state = use_context::<web::Data<AppState>>(cx)
+        .ok_or(ServerFnError::ServerError("no app state".into()))?;
     let db = &app_state.db_pool;
 
     _ = sqlx::query!("INSERT OR IGNORE INTO player (name) VALUES (?)", playername)
@@ -143,10 +169,11 @@ pub async fn save_player_score(cx: Scope, time: u16) -> Result<(), ServerFnError
         JOIN difficulty AS d ON s.difficulty_id = d.id
     WHERE
         s.time < ?
-        AND d.description = 'Beginner'
+        AND d.id = ?
     ORDER BY s.time
     ",
-        time
+        time,
+        difficulty_id
     )
     .fetch_one(db)
     .await
@@ -162,7 +189,7 @@ pub async fn save_player_score(cx: Scope, time: u16) -> Result<(), ServerFnError
     VALUES (?, ?, ?)
     ",
         player.id,
-        1,
+        difficulty_id,
         time
     )
     .execute(db)

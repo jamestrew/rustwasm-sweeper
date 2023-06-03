@@ -3,6 +3,8 @@ mod cell;
 mod pos;
 
 use rand::Rng;
+use serde::Deserialize;
+use serde::Serialize;
 use std::error::Error;
 use std::fmt::Display;
 
@@ -25,7 +27,7 @@ impl GameState {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Difficulty {
     Beginner,
     Intermediate,

@@ -1,4 +1,3 @@
-
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -8,7 +7,7 @@ async fn main() -> std::io::Result<()> {
     use leptos::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_start::ui::*;
-    use leptos_start::{AppState, register_server_functions};
+    use leptos_start::{register_server_functions, AppState};
     use sqlx::SqlitePool;
 
     let conf = get_configuration(None).await.unwrap();

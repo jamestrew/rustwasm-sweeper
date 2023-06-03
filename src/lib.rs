@@ -28,6 +28,10 @@ cfg_if! {
             pub db_pool: Pool<Sqlite>,
         }
 
-        pub fn register_server_functions() {}
+        pub fn register_server_functions() {
+            use leptos::ServerFn;
+
+            _ = ui::SaveScore::register();
+        }
     }
 }

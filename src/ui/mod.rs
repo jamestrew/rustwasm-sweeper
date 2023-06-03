@@ -5,7 +5,7 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
-use components::game::*;
+pub use components::game::*;
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
