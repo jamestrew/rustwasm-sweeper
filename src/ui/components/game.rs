@@ -134,22 +134,25 @@ pub async fn save_player_score(
     use actix_web::{web, HttpRequest};
 
     let difficulty_id = difficulty.id();
-    let req = use_context::<HttpRequest>(cx);
+    let req =
+        use_context::<HttpRequest>(cx).ok_or(ServerFnError::ServerError("no request".into()))?;
 
     let playername = req
-        .and_then(|req| {
-            req.cookie("playername")
-                .map(|cookie| cookie.value().to_owned())
-        })
-        .ok_or_else(|| ServerFnError::ServerError("playername cookie field not set".into()))?;
+        .cookie("playername")
+        .map(|cookie| cookie.value().to_owned())
+        .ok_or(ServerFnError::ServerError(
+            "playername cookie field not set".into(),
+        ))?;
 
-    let app_state = use_context::<web::Data<AppState>>(cx)
+    let app_state = req
+        .app_data::<web::Data<AppState>>()
         .ok_or(ServerFnError::ServerError("no app state".into()))?;
     let db = &app_state.db_pool;
 
     _ = sqlx::query!("INSERT OR IGNORE INTO player (name) VALUES (?)", playername)
         .execute(db)
         .await;
+
     let player = sqlx::query!("SELECT id AS id FROM player WHERE name = ?", playername)
         .fetch_one(db)
         .await
