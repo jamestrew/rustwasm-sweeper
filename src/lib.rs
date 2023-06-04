@@ -32,6 +32,7 @@ cfg_if! {
             use leptos::ServerFn;
 
             _ = ui::SaveScore::register();
+            _ = ui::GetScores::register();
         }
     }
 }

@@ -3,8 +3,7 @@ mod cell;
 mod pos;
 
 use rand::Rng;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt::Display;
 

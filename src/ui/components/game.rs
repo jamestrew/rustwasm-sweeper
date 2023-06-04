@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::minesweeper::Difficulty;
 use crate::minesweeper::{GameState, Minesweeper, Pos, SETTINGS};
 use leptos::leptos_dom::helpers::IntervalHandle;
@@ -36,6 +38,11 @@ pub fn Game(cx: Scope) -> impl IntoView {
             time,
         },
     );
+
+    spawn_local(async move {
+        let scores = get_leaderboard_scores(cx).await;
+        log!("{:?}", scores);
+    });
 
     create_effect(cx, move |_| {
         let state = game.with(|g| g.state);
@@ -132,7 +139,6 @@ pub async fn save_player_score(
 ) -> Result<(), ServerFnError> {
     use crate::AppState;
     use actix_web::{web, HttpRequest};
-
     let difficulty_id = difficulty.id();
     let req =
         use_context::<HttpRequest>(cx).ok_or(ServerFnError::ServerError("no request".into()))?;
@@ -229,4 +235,59 @@ fn is_playname_set(cookie: &str) -> bool {
         }
     }
     return false;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Score {
+    name: String,
+    time: i64,
+}
+
+use serde::{Deserialize, Serialize};
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LeaderboardScores(HashMap<String, Vec<Score>>);
+
+#[server(GetScores, "/api")]
+pub async fn get_leaderboard_scores(cx: Scope) -> Result<LeaderboardScores, ServerFnError> {
+    use crate::AppState;
+    use actix_web::{web, HttpRequest};
+
+    let req =
+        use_context::<HttpRequest>(cx).ok_or(ServerFnError::ServerError("no request".into()))?;
+
+    let app_state = req
+        .app_data::<web::Data<AppState>>()
+        .ok_or(ServerFnError::ServerError("no app state".into()))?;
+    let db = &app_state.db_pool;
+
+    let mut scores = LeaderboardScores(HashMap::new());
+    for difficulty in &[
+        Difficulty::Beginner,
+        Difficulty::Intermediate,
+        Difficulty::Expert,
+    ] {
+        let diff_id = difficulty.id();
+        let diff_score = sqlx::query_as!(
+            Score,
+            r#"
+        SELECT p.name AS "name!", s.time AS "time!"
+        FROM
+            score AS s
+        INNER JOIN player AS p ON p.id = s.player_id
+        INNER JOIN difficulty AS d ON d.id = s.difficulty_id
+        WHERE
+            d.id = ?
+        ORDER BY
+            s.time
+        LIMIT 10;
+        "#,
+            diff_id
+        )
+        .fetch_all(db)
+        .await
+        .map_err(|msg| ServerFnError::ServerError(msg.to_string()))?;
+
+        scores.0.insert(difficulty.to_string(), diff_score);
+    }
+    Ok(scores)
 }
