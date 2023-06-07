@@ -7,21 +7,27 @@ use crate::{
 
 #[component]
 pub fn Scoreboard(cx: Scope) -> impl IntoView {
-    let GameUpdater { game, time, .. } = use_context(cx).unwrap();
+    let GameUpdater {
+        game,
+        time,
+        setting,
+        ..
+    } = use_context(cx).unwrap();
 
-    let flagged = move || {
+    let flags_remaining = move || {
         game.with(|g| {
-            g.board
-                .iter()
-                .flatten()
-                .filter(|kind| kind.is_flagged())
-                .count()
+            setting().mine_count
+                - g.board
+                    .iter()
+                    .flatten()
+                    .filter(|kind| kind.is_flagged())
+                    .count()
         })
     };
 
     view! { cx,
         <div class="Scoreboard">
-            <div class="Counter">{ flagged }</div>
+            <div class="Counter">{ flags_remaining }</div>
             <MinesweeperGuy />
             <div class="Counter">{ time }</div>
         </div>
