@@ -26,7 +26,7 @@ impl GameState {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash, Eq)]
 pub enum Difficulty {
     Beginner,
     Intermediate,

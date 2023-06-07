@@ -1,21 +1,43 @@
+use crate::minesweeper::Difficulty;
+use crate::ui::components::game::LeaderboardScores;
 use leptos::*;
 
 #[component]
-pub fn Leaderboards(cx: Scope) -> impl IntoView {
+pub fn Leaderboards(cx: Scope, scores: ReadSignal<LeaderboardScores>) -> impl IntoView {
     view! { cx,
         <div class="Leaderboards">
-            <Leaderboard difficulty="Beginner" />
-            <Leaderboard difficulty="Intermediate" />
-            <Leaderboard difficulty="Expert" />
+            <Leaderboard difficulty=Difficulty::Beginner scores />
+            <Leaderboard difficulty=Difficulty::Intermediate scores />
+            <Leaderboard difficulty=Difficulty::Expert scores />
         </div>
     }
 }
 
 #[component]
-fn Leaderboard(cx: Scope, difficulty: &'static str) -> impl IntoView {
+fn Leaderboard(
+    cx: Scope,
+    difficulty: Difficulty,
+    scores: ReadSignal<LeaderboardScores>,
+) -> impl IntoView {
+
     view! { cx,
         <div class="Leaderboard">
-            <h4>{difficulty}</h4>
+            <h4>{difficulty.to_string()}</h4>
+            <table>
+                <For
+                    each=move || scores.with(|s| s.diff_scores(&difficulty))
+                    key=|score| score.time
+                    view=move |cx, score| {
+                        view! { cx,
+                            <tr>
+                                // <td style="width: 1em; text-align: left">{1}</td>
+                                <td style="width: 8em">{score.name}</td>
+                                <td style="width: 2em; text-align: right">{score.time}</td>
+                            </tr>
+                        }
+                    }
+                />
+            </table>
         </div>
     }
     /*

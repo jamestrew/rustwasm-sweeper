@@ -23,6 +23,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
     let (mouse_down, set_mouse_down) = create_signal::<MouseButtons>(cx, MouseButtons::None);
     let (setting, set_setting) = create_signal(cx, SETTINGS[0]);
     let (time, set_time) = create_signal::<u16>(cx, 0);
+    let (scores, set_scores) = create_signal::<LeaderboardScores>(cx, LeaderboardScores::default());
 
     let game_state = store_value(cx, game.with(|g| g.state));
     let interval = store_value::<Option<Result<IntervalHandle, JsValue>>>(cx, None);
@@ -40,8 +41,8 @@ pub fn Game(cx: Scope) -> impl IntoView {
     );
 
     spawn_local(async move {
-        let scores = get_leaderboard_scores(cx).await;
-        log!("{:?}", scores);
+        let scores = get_leaderboard_scores(cx).await.unwrap_or_default();
+        set_scores.set(scores);
     });
 
     create_effect(cx, move |_| {
@@ -115,7 +116,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
                 />
             </div>
             <SettingsPanel />
-            <Leaderboards />
+            <Leaderboards scores />
         </div>
     }
 }
@@ -237,15 +238,29 @@ fn is_playname_set(cookie: &str) -> bool {
     return false;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Score {
-    name: String,
-    time: i64,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Score {
+    pub id: i64,
+    pub name: String,
+    pub time: i64,
 }
 
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LeaderboardScores(HashMap<String, Vec<Score>>);
+pub struct LeaderboardScores(pub HashMap<Difficulty, Vec<Score>>);
+
+impl LeaderboardScores {
+    pub fn diff_scores(&self, difficulty: &Difficulty) -> Vec<Score> {
+        // self.0[difficulty].clone()
+        self.0.get(difficulty).unwrap_or(&Vec::new()).clone()
+    }
+}
+
+impl Default for LeaderboardScores {
+    fn default() -> Self {
+        Self(Default::default())
+    }
+}
 
 #[server(GetScores, "/api")]
 pub async fn get_leaderboard_scores(cx: Scope) -> Result<LeaderboardScores, ServerFnError> {
@@ -270,7 +285,7 @@ pub async fn get_leaderboard_scores(cx: Scope) -> Result<LeaderboardScores, Serv
         let diff_score = sqlx::query_as!(
             Score,
             r#"
-        SELECT p.name AS "name!", s.time AS "time!"
+        SELECT s.id AS "id!", p.name AS "name!", s.time AS "time!"
         FROM
             score AS s
         INNER JOIN player AS p ON p.id = s.player_id
@@ -287,7 +302,7 @@ pub async fn get_leaderboard_scores(cx: Scope) -> Result<LeaderboardScores, Serv
         .await
         .map_err(|msg| ServerFnError::ServerError(msg.to_string()))?;
 
-        scores.0.insert(difficulty.to_string(), diff_score);
+        scores.0.insert(*difficulty, diff_score);
     }
     Ok(scores)
 }
