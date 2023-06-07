@@ -76,6 +76,9 @@ pub fn Game(cx: Scope) -> impl IntoView {
                             setting.get_untracked().difficulty,
                         )
                         .await;
+
+                        let scores = get_leaderboard_scores(cx).await.unwrap_or_default();
+                        set_scores.set(scores);
                     });
                 }
                 _ => {}
