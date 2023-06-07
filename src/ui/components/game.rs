@@ -41,8 +41,10 @@ pub fn Game(cx: Scope) -> impl IntoView {
     );
 
     spawn_local(async move {
-        let scores = get_leaderboard_scores(cx).await.unwrap_or_default();
-        set_scores.set(scores);
+        let scores = get_leaderboard_scores(cx).await;
+        if let Ok(scores) = scores {
+            set_scores.set(scores);
+        }
     });
 
     create_effect(cx, move |_| {
