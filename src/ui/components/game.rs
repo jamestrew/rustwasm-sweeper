@@ -40,12 +40,16 @@ pub fn Game(cx: Scope) -> impl IntoView {
         },
     );
 
-    spawn_local(async move {
-        let scores = get_leaderboard_scores(cx).await;
-        if let Ok(scores) = scores {
-            set_scores.set(scores);
-        }
-    });
+    let fetch_and_set_score = move || {
+        spawn_local(async move {
+            let scores = get_leaderboard_scores(cx).await;
+            if let Ok(scores) = scores {
+                set_scores.set(scores);
+            }
+        })
+    };
+
+    fetch_and_set_score();
 
     create_effect(cx, move |_| {
         let state = game.with(|g| g.state);
@@ -69,7 +73,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
             }
             match game_state() {
                 GameState::Unstarted => set_time.set(0),
-                GameState::Win => {
+                GameState::Win if setting.get_untracked().difficulty != Difficulty::Custom => {
                     set_playername();
                     spawn_local(async move {
                         _ = save_player_score(
@@ -79,8 +83,7 @@ pub fn Game(cx: Scope) -> impl IntoView {
                         )
                         .await;
 
-                        let scores = get_leaderboard_scores(cx).await.unwrap_or_default();
-                        set_scores.set(scores);
+                        fetch_and_set_score();
                     });
                 }
                 _ => {}
